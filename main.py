@@ -1,5 +1,7 @@
 import discord
-from discord import Message
+from discord.ext import commands
+from discord.ext.commands import Context
+from discord import Guild, Interaction
 from dotenv import load_dotenv
 import os
 
@@ -7,20 +9,39 @@ import os
 load_dotenv()
 
 intents = discord.Intents.default()
+intents.guilds = True
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents)
 
-@client.event
+@bot.event
 async def on_ready():
-    print(f'We have logged in as {client.user}')
+    print(f'We have logged in as {bot.user}')
 
-@client.event
-async def on_message(message: Message):
-    if message.author == client.user:
-        return
+    # If we are in production, sync the slash commands
+    if os.getenv("ENV") == "production":
+        print("Attempting to sync commands")
+        await sync_commands()
 
-    if message.content.startswith('$hello'):
-        await message.channel.send('Hello!')
+# Ping slash command
+@bot.tree.command(name='ping', description='Replies with Pong!')
+async def ping(interaction: Interaction):
+    await interaction.response.send_message('Pong!')
 
-client.run(os.getenv('BOT_TOKEN'))
+# Sync slash command
+async def sync_commands(guild: Guild = None):
+    bot.tree.copy_global_to(guild=guild)
+    commands = await bot.tree.sync(guild=guild)
+    print(f"Synced {len(commands)} commands")
+
+# Normal command to sync slash commands to current guild
+@bot.command()
+@commands.is_owner()
+async def sync(ctx: Context):
+    if os.getenv("ENV") != "production":
+        await sync_commands(guild=ctx.guild)
+        await ctx.send('Synced commands to this server!')
+
+# If name is main, run the bot
+if __name__ == '__main__':
+    bot.run(os.getenv('BOT_TOKEN'))

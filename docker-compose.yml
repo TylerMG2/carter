@@ -4,4 +4,3 @@ services:
     build: .
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
-      - ENV=production 
