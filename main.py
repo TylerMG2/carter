@@ -30,7 +30,12 @@ async def ping(interaction: Interaction):
 
 # Sync slash command
 async def sync_commands(guild: Guild = None):
-    bot.tree.copy_global_to(guild=guild)
+
+    # If guild was supplied, copy global commands to guild
+    if guild is not None:
+        bot.tree.copy_global_to(guild=guild)
+
+    # Sync commands
     commands = await bot.tree.sync(guild=guild)
     print(f"Synced {len(commands)} commands")
 
