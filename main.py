@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from discord import Guild, Interaction
 from dotenv import load_dotenv
+from cogs import setup_cogs
 import os
 
 # Load environment variables
@@ -17,6 +18,9 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user}')
+
+    # Load cogs
+    await setup_cogs(bot)
 
     # If we are in production, sync the slash commands
     if os.getenv("ENV") == "production":
