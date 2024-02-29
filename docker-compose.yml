@@ -4,3 +4,4 @@ services:
     build: .
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
+      - STREETVIEW_API_KEY=${STREETVIEW_API_KEY}

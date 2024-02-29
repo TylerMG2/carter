@@ -2,3 +2,4 @@ discord-py
 python-dotenv
 pytest
 pytest-asyncio
+requests
