@@ -40,7 +40,7 @@ async def get_closest_pano(lat, long) -> Panorama:
     return Panorama(response['pano_id'], location["lat"], location["lng"], response['date'])
 
 # Generate a random point within a polygon
-def random_point_in_polygon(polygon: Polygon | MultiPolygon) -> Point:
+def random_point_in_polygon(polygon: Polygon) -> Point:
     minx, miny, maxx, maxy = polygon.bounds
     while True:
         point = Point(random.uniform(minx, maxx), random.uniform(miny, maxy))
@@ -55,7 +55,7 @@ async def get_pano_in_country(country: str) -> Panorama:
         raise ValueError(f'{country} not found in world_map')
 
     country = world_map[world_map['iso3'] == country]
-    country_poly : Polygon | MultiPolygon = country.geometry.iloc[0]
+    country_poly : Polygon = country.geometry.iloc[0]
     
     # Run until we find a pano
     pano = None
