@@ -31,6 +31,10 @@ async def get_closest_pano(lat, long) -> Panorama:
     if response['status'] != 'OK':
         return None
     
+    # Check owner
+    if response['copyright'] != '© Google':
+        return None
+    
     # Return pano
     location = response['location']
     return Panorama(response['pano_id'], location["lat"], location["lng"], response['date'])
@@ -48,7 +52,7 @@ async def get_pano_in_country(country: str) -> Panorama:
 
     # Check if country is in world_map
     if country not in world_map['iso3'].values:
-        raise ValueError('Country not found in world_map')
+        raise ValueError(f'{country} not found in world_map')
 
     country = world_map[world_map['iso3'] == country]
     country_poly : Polygon | MultiPolygon = country.geometry.iloc[0]

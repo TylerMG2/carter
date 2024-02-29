@@ -1,13 +1,13 @@
 from discord.ext import commands
-from discord import app_commands
-from discord import Embed, Interaction
-from .streetview import get_pano_in_country
+from discord import app_commands, Interaction
+from .challenge import Challenge
+import asyncio
 
 # Geoguessr cog for commands associated with the geoguessr game
 class Geoguessr(commands.Cog):
 
     # Challenges list
-    challenges = []
+    challenges : dict[int, Challenge] = {}
 
     # Constructor
     def __init__(self, bot: commands.Bot):
@@ -21,22 +21,41 @@ class Geoguessr(commands.Cog):
     
     # Challenge slash command
     @app_commands.command(name='challenge', description='Create a new geoguessr challenge')
-    async def challenge(self, interaction: Interaction):
+    async def challenge(self, interaction: Interaction, timer: int = 60):
 
         # Deferring the response
         await interaction.response.defer(thinking=True)
+
+        # Add the challenge to the challenges list
+        new_challenge = Challenge()
+        await new_challenge.start(interaction, timer=timer)
+        self.challenges[interaction.channel_id] = new_challenge
+
+        # Wait for the challenge to end
+        await asyncio.sleep(timer)
+
+        # End the challenge
+        await new_challenge.end()
+        if interaction.channel_id in self.challenges and self.challenges[interaction.channel_id].ended:
+            self.challenges.pop(interaction.channel_id)
+    
+    # Guess slash command
+    @app_commands.command(name='guess', description='Guess the location of the geoguessr challenge')
+    async def guess(self, interaction: Interaction, guess: str):
+
+        # Check if the challenge exists
+        if interaction.channel_id not in self.challenges:
+            await interaction.response.send_message('No active challenge exists in this channel, start one with /challenge', ephemeral=True, delete_after=5)
+            return
         
-        # Get a panorama in a random country
-        pano = await get_pano_in_country('NDL')
+        # Add the guess to the challenge
+        challenge = self.challenges[interaction.channel_id]
+        result = await challenge.make_guess(interaction, guess)
 
-        # Create an embed
-        embed = Embed(title='Geoguessr Challenge', description='Can you guess where this is?', color=0x00ff00)
-        embed.set_image(url=pano.get_image_url(120))
-        embed.add_field(name='Guesses', value='', inline=False)
-        embed.set_footer(text="Created by Tyler", icon_url=interaction.user.avatar)
-
-        # Send the embed
-        await interaction.followup.send(embed=embed)
+        # If the result is true, end the challenge
+        if result:
+            await challenge.end(interaction.user)
+            self.challenges.pop(interaction.channel_id)
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):
