@@ -16,17 +16,21 @@ class Challenge:
         self.ended = False
 
     # Start the challenge
-    async def start(self, interaction: Interaction, timer: int = 60):
+    async def start(self, interaction: Interaction, timer: int = 0):
 
         # Get a random country
         _, _, self.country = country_data.sample().iloc[0].to_list()
         self.pano = await get_pano_in_country(self.country)
 
+        title = f'Country Challenge'
+
         # Future time
-        future_timestamp = int(time.time()) + timer
+        if timer > 0:
+            future_timestamp = int(time.time()) + timer
+            title += f'\n`Ends`<t:{future_timestamp}:R>'
         
         # Create an embed
-        self.embed = Embed(title=f'Country Challenge\n`Ends`<t:{future_timestamp}:R>', description=f'You can make a guess with the `/guess` command.', color=0x0000ff)
+        self.embed = Embed(title=title, description=f'You can make a guess with the `/guess` command.', color=0x0000ff)
         self.embed.set_image(url=self.pano.get_image_url(120))
         self.embed.add_field(name='Guesses', value='', inline=False)
         self.embed.set_footer(text='Bot created by Tyler')

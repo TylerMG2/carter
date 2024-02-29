@@ -21,7 +21,7 @@ class Geoguessr(commands.Cog):
     
     # Challenge slash command
     @app_commands.command(name='challenge', description='Create a new geoguessr challenge')
-    async def challenge(self, interaction: Interaction, timer: int = 60):
+    async def challenge(self, interaction: Interaction, timer: int = 0):
 
         # Deferring the response
         await interaction.response.defer(thinking=True)
@@ -32,12 +32,13 @@ class Geoguessr(commands.Cog):
         self.challenges[interaction.channel_id] = new_challenge
 
         # Wait for the challenge to end
-        await asyncio.sleep(timer)
+        if timer > 0:
+            await asyncio.sleep(timer)
 
-        # End the challenge
-        await new_challenge.end()
-        if interaction.channel_id in self.challenges and self.challenges[interaction.channel_id].ended:
-            self.challenges.pop(interaction.channel_id)
+            # End the challenge
+            if not new_challenge.ended:
+                await new_challenge.end()
+                self.challenges.pop(interaction.channel_id)
     
     # Guess slash command
     @app_commands.command(name='guess', description='Guess the location of the geoguessr challenge')

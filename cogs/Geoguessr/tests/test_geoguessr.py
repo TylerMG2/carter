@@ -3,18 +3,7 @@ from ..panorama import Panorama
 from ..streetview import get_closest_pano, get_pano_in_country, random_point_in_polygon
 from shapely.geometry import Polygon, MultiPolygon, Point
 
-KNOWN_PANO_LOCATION = (40.7128, -74.0060)
-
-# Test that the get_closest_pano function returns a Panorama object
-@pytest.mark.asyncio
-async def test_get_closest_pano():
-    pano = await get_closest_pano(*KNOWN_PANO_LOCATION)
-    assert pano is not None
-    assert isinstance(pano, Panorama)
-    assert pano.pano_id is not None
-    assert pano.lat is not None
-    assert pano.long is not None
-    assert pano.date is not None
+KNOWN_PANO_LOCATION = (51.872183,5.4076171)
 
 # Test random_point_in_polygon function with polygon
 def test_random_point_in_polygon():
@@ -29,6 +18,18 @@ def test_random_point_in_multipolygon():
     multipolygon = MultiPolygon([polygon1, polygon2])
     point = random_point_in_polygon(multipolygon)
     assert multipolygon.contains(point)
+
+# Test that the get_closest_pano function returns a Panorama object
+@pytest.mark.asyncio
+async def test_get_closest_pano():
+    pano = await get_closest_pano(*KNOWN_PANO_LOCATION)
+    assert pano is not None
+    assert isinstance(pano, Panorama)
+    assert pano.pano_id is not None
+    assert pano.lat is not None
+    assert pano.long is not None
+    assert pano.date is not None
+
 
 # Test that the get_closest_pano function returns None when given invalid lat, long
 @pytest.mark.asyncio

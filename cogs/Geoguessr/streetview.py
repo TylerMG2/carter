@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Streetview API urls
-STREETVIEW_SEARCH_URL = "https://maps.googleapis.com/maps/api/streetview/metadata?location={0:},{1:}&key={2:}&radius=30000"
+STREETVIEW_SEARCH_URL = "https://maps.googleapis.com/maps/api/streetview/metadata?location={0:},{1:}&key={2:}&radius=10000"
 
 # Load world_map
 world_map = GeoDataFrame.from_file('./resources/country_shapes.geojson')
