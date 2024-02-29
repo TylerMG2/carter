@@ -3,3 +3,5 @@ python-dotenv
 pytest
 pytest-asyncio
 requests
+geopandas
+shapely
