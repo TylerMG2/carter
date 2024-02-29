@@ -5,6 +5,7 @@ from shapely.geometry import Polygon, MultiPolygon
 from geopandas import GeoDataFrame
 import asyncio
 import os
+import random
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -34,8 +35,21 @@ async def get_closest_pano(lat, long) -> Panorama:
     location = response['location']
     return Panorama(response['pano_id'], location["lat"], location["lng"], response['date'])
 
+# Generate a random point within a polygon
+def random_point_in_polygon(polygon: Polygon | MultiPolygon) -> Point:
+    minx, miny, maxx, maxy = polygon.bounds
+    while True:
+        point = Point(random.uniform(minx, maxx), random.uniform(miny, maxy))
+        if polygon.contains(point):
+            return point
+
 # Function to get a panorama within a given country
 async def get_pano_in_country(country: str) -> Panorama:
+
+    # Check if country is in world_map
+    if country not in world_map['iso3'].values:
+        raise ValueError('Country not found in world_map')
+
     country = world_map[world_map['iso3'] == country]
     country_poly : Polygon | MultiPolygon = country.geometry.iloc[0]
     
@@ -44,7 +58,7 @@ async def get_pano_in_country(country: str) -> Panorama:
     while not pano:
 
         # Get point within the country
-        point = country_poly.point_on_surface()
+        point = random_point_in_polygon(country_poly)
         pano = await get_closest_pano(point.y, point.x)
 
         # Time out for a bit

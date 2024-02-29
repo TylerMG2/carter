@@ -1,12 +1,11 @@
 # test_main.py
 from main import bot
-from discord import app_commands
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 # Test that the bot is created
 @pytest.mark.asyncio
-async def test_bot():
+async def test_bot_is_created():
     assert bot is not None
 
 # Test ping command
