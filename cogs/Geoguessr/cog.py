@@ -7,8 +7,9 @@ class Geoguessr(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
-    # Status command
+    # Cog Status command
     @commands.command()
+    @commands.is_owner()
     async def geostatus(self, ctx: commands.Context):
         await ctx.send('Geoguessr cog is up and running!')
 
