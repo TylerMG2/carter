@@ -8,24 +8,25 @@ import os
 # Load environment variables
 load_dotenv()
 
+# Setup intents
 intents = discord.Intents.default()
 intents.guilds = True
 intents.message_content = True
 
+# Initialize bot
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user}')
+    # Load cogs
+    for folder in os.listdir('./cogs'):
+        if os.path.isdir(f'./cogs/{folder}') and not folder.startswith('_'):
+            await bot.load_extension(f'cogs.{folder}.cog')
 
-    # If we are in production, sync the slash commands
-    if os.getenv("ENV") == "production":
-        print("Attempting to sync commands")
-        await sync_commands()
-
-# Ping slash command
+# Ping command
 @bot.tree.command(name='ping', description='Replies with Pong!')
-async def ping(interaction: Interaction):
+async def ping(interaction: discord.Interaction):
     await interaction.response.send_message('Pong!')
 
 # Sync slash command

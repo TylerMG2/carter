@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 # Test that the bot is created
 @pytest.mark.asyncio
-async def test_bot():
+async def test_bot_is_created():
     assert bot is not None
 
 # Test ping command
