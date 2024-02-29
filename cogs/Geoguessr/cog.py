@@ -28,9 +28,9 @@ class Geoguessr(commands.Cog):
 
         # If there is already a challenge in the channel, delete it
         if interaction.channel_id in self.challenges:
-            await self.challenges[interaction.channel_id].end()
             self.challenges.pop(interaction.channel_id)
-
+            await self.challenges[interaction.channel_id].end()
+            
         # Add the challenge to the challenges list
         new_challenge = Challenge()
         await new_challenge.start(interaction, timer=timer)
@@ -42,8 +42,8 @@ class Geoguessr(commands.Cog):
 
             # End the challenge
             if not new_challenge.ended:
-                await new_challenge.end()
                 self.challenges.pop(interaction.channel_id)
+                await new_challenge.end()     
     
     # Guess slash command
     @app_commands.command(name='guess', description='Guess the location of the geoguessr challenge')
@@ -61,7 +61,8 @@ class Geoguessr(commands.Cog):
         # If the result is true, end the challenge
         if result:
             await challenge.end(interaction.user)
-            self.challenges.pop(interaction.channel_id)
+            if interaction.channel_id in self.challenges:
+                self.challenges.pop(interaction.channel_id)
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):
