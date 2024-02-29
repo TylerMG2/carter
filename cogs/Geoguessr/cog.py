@@ -26,6 +26,11 @@ class Geoguessr(commands.Cog):
         # Deferring the response
         await interaction.response.defer(thinking=True)
 
+        # If there is already a challenge in the channel, delete it
+        if interaction.channel_id in self.challenges:
+            await self.challenges[interaction.channel_id].end()
+            self.challenges.pop(interaction.channel_id)
+
         # Add the challenge to the challenges list
         new_challenge = Challenge()
         await new_challenge.start(interaction, timer=timer)
