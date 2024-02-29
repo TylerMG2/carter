@@ -47,7 +47,7 @@ class Geoguessr(commands.Cog):
     
     # Guess slash command
     @app_commands.command(name='guess', description='Guess the location of the geoguessr challenge')
-    async def guess(self, interaction: Interaction, guess: str):
+    async def guess(self, interaction: Interaction, country: str):
 
         # Check if the challenge exists
         if interaction.channel_id not in self.challenges:
@@ -56,7 +56,7 @@ class Geoguessr(commands.Cog):
         
         # Add the guess to the challenge
         challenge = self.challenges[interaction.channel_id]
-        result = await challenge.make_guess(interaction, guess)
+        result = await challenge.make_guess(interaction, country)
 
         # If the result is true, end the challenge
         if result:
