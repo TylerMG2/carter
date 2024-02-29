@@ -2,3 +2,6 @@ discord-py
 python-dotenv
 pytest
 pytest-asyncio
+requests
+geopandas
+shapely
