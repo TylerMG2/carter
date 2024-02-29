@@ -1,5 +1,6 @@
 # test_main.py
 from main import bot
+from discord import app_commands
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 

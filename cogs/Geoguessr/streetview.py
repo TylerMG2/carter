@@ -12,7 +12,7 @@ load_dotenv()
 STREETVIEW_SEARCH_URL = "https://maps.googleapis.com/maps/api/streetview/metadata?location={0:},{1:}&key={2:}&radius=30000"
 
 # Load world_map
-world_map = GeoDataFrame.from_file('./resources/countries.geojson')
+world_map = GeoDataFrame.from_file('./resources/country_shapes.geojson')
 
 # Function to get panos at a lat, long
 async def get_closest_pano(lat, long) -> Panorama:
