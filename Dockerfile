@@ -16,4 +16,4 @@ COPY . /app/
 ENV ENV=production
 
 # Run the main.py
-CMD ["python", "main.py"]
+CMD ["python", "-u", "main.py"]
