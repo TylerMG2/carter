@@ -4,6 +4,7 @@ import geopandas as gpd
 from ..streetview import get_pano_in_country
 import asyncio
 import pytest
+import requests
 
 # Load country data
 country_data = pd.read_csv('./resources/country_data.csv')
@@ -23,6 +24,12 @@ async def test_get_pano_in_country():
         try:
             pano = await asyncio.wait_for(get_pano_in_country(country), timeout=5)
             assert pano is not None
+
+            # Check that pano.get_image_url() returns a valid image
+            response = requests.get(pano.get_image_url())
+            assert response.ok
+            assert response.headers['Content-Type'] == 'image/jpeg'
+
         except asyncio.TimeoutError:
             print(f"Timeout for {country}")
             assert False
