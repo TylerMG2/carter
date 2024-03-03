@@ -48,7 +48,12 @@ class Geoguessr(commands.Cog):
         options : typing.List[app_commands.Choice[str]] = []
         for iso2, name in COUNTRIES.items():
             if name.lower().startswith(current.lower()):
-                options.append(app_commands.Choice(name=name, value=iso2))
+
+                flag_emoji = ''.join([chr(0x1F1E6 + ord(char) - ord('A')) for char in iso2.upper()])
+                options.append(app_commands.Choice(name=f'{flag_emoji} {name}', value=iso2))
+
+        if current == '':
+            return options[:1]
         
         # Only return first 5 options
         return options[:5]  
