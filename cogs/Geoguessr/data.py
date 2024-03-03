@@ -9,4 +9,6 @@ PANORAMAS = pd.read_csv('./resources/panoramas.csv')
 countries.drop(columns=['alpha-3'], inplace=True)
 
 # Create a dictionary of country data
-COUNTRIES = countries.set_index('alpha-2').T.to_dict()
+COUNTRIES = {}
+for index, row in countries.iterrows():
+    COUNTRIES[row['alpha-2']] = row['name']

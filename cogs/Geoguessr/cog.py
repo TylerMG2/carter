@@ -25,6 +25,11 @@ class Geoguessr(commands.Cog):
     @app_commands.command(name='challenge', description='Create a new geoguessr challenge')
     async def challenge(self, interaction: Interaction, timer: int = 0):
 
+        # Check if the time limit is too large
+        if timer > 600:
+            await interaction.response.send_message('Time limit must be less then 600 seconds.', ephemeral=True)
+            return
+
         # Deferring the response
         await interaction.response.defer(thinking=True)
 
@@ -34,7 +39,7 @@ class Geoguessr(commands.Cog):
             await old_challenge.end()
             
         # Add the challenge to the challenges list
-        new_challenge = Challenge()
+        new_challenge = Challenge(self.bot)
         await new_challenge.start(interaction, time_limit=timer)
         self.challenges[interaction.channel_id] = new_challenge
 
@@ -45,8 +50,8 @@ class Geoguessr(commands.Cog):
             if name.lower().startswith(current.lower()):
                 options.append(app_commands.Choice(name=name, value=iso2))
         
-        # Only return first 25 options
-        return options[:25]  
+        # Only return first 5 options
+        return options[:5]  
     
     # Guess slash command
     @app_commands.command(name='guess', description='Guess the location of the geoguessr challenge')

@@ -1,6 +1,7 @@
 
 # Url for panorama image
 PANORAMA_URL = "https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid={0:}&cb_client=maps_sv.tactile.gps&w=1280&h=720&yaw={1:}&pitch=0&thumbfov=120"
+STREETVIEW_URL = "http://maps.google.com/maps?q=&layer=c&cbll={0:},{1:}&cbp=11,{2:},0,0,0"
 
 # Class for storing and handling panorama images
 class Panorama:
@@ -16,3 +17,7 @@ class Panorama:
     # Method to get the panorama image url
     def get_image_url(self, yaw: int = 0) -> str:
         return PANORAMA_URL.format(self.pano_id, yaw)
+
+    # Method to get the streetview url
+    def get_streetview_url(self, yaw: int = 0) -> str:
+        return STREETVIEW_URL.format(self.lat, self.long, yaw)
