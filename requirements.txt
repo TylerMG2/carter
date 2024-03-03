@@ -5,3 +5,4 @@ pytest-asyncio
 requests
 geopandas
 shapely
+aiohttp

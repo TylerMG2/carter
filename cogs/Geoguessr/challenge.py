@@ -30,8 +30,8 @@ class Challenge:
             title += f'\n`Ends`<t:{future_timestamp}:R>'
         
         # Create an embed
-        self.embed = Embed(title=title, description=f'You can make a guess with the `/guess` command.', color=0x0000ff)
-        self.embed.set_image(url=self.pano.get_image_url(120))
+        self.embed = Embed(title=title, description=f'You can make a guess with the `/guess` command.\nGoogles [Privacy Policy](http://www.google.com/policies/privacy) and [Terms of Sevice](http://www.google.com/intl/en/policies/terms)', color=0x0000ff)
+        self.embed.set_image(url=self.pano.get_image_url())
         self.embed.add_field(name='Guesses', value='', inline=False)
         self.embed.set_footer(text='Bot created by Tyler')
 
@@ -82,8 +82,8 @@ class Challenge:
             end_embed.set_thumbnail(url=winner.avatar)
         else:
             end_embed = Embed(title=f'Times up!', description=f'The country was {name} :flag_{iso2.lower()}:', color=0xff0000)
-            end_embed.set_thumbnail(url=self.pano.get_image_url(120))
-        end_embed.set_footer(text="Bot created by Tyler")
+            end_embed.set_thumbnail(url=self.pano.get_image_url())
+        end_embed.set_footer(text="Bot created by Tyler.")
 
         # Update the challenge message
         await self.message.edit(embed=end_embed)
