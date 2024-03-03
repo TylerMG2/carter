@@ -28,8 +28,8 @@ class Geoguessr(commands.Cog):
 
         # If there is already a challenge in the channel, delete it
         if interaction.channel_id in self.challenges:
-            self.challenges.pop(interaction.channel_id)
-            await self.challenges[interaction.channel_id].end()
+            old_challenge = self.challenges.pop(interaction.channel_id)
+            await old_challenge.end()
             
         # Add the challenge to the challenges list
         new_challenge = Challenge()
