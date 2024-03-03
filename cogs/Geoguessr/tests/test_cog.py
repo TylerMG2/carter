@@ -36,3 +36,4 @@ async def test_challenge_command(add_geoguessr_cog):
     assert len(cog.challenges.keys()) == 1
     assert 123 in cog.challenges.keys()
     assert isinstance(cog.challenges[123], Challenge)
+    assert cog.challenges[123].pano is not None

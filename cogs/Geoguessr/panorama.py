@@ -5,11 +5,13 @@ PANORAMA_URL = "https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid={
 # Class for storing and handling panorama images
 class Panorama:
 
-    def __init__(self, pano_id: str, lat: float, long: float, date: str, country: str) -> None:
+    def __init__(self, pano_id: str, lat: float, long: float, date: str, country: str, iso2: str) -> None:
         self.pano_id = pano_id
         self.lat = lat
         self.long = long
         self.date = date
+        self.country = country
+        self.iso2 = iso2
 
     # Method to get the panorama image url
     def get_image_url(self, yaw: int = 0) -> str:

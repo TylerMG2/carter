@@ -1,8 +1,6 @@
 ## Load country_data.csv
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import Point, Polygon
-from ..streetview import get_pano_in_country
 import pytest
 
 # Load country data
@@ -19,7 +17,7 @@ def test_country_data():
 
 # Test that all countries have at least one panorama
 def test_country_panos():
-    for country in country_data['alpha-3']:
+    for country in country_data['alpha-2']:
         assert panoramas[panoramas['country'] == country].shape[0] > 0
 
 # Test get_pano_in_country for each country

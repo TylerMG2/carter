@@ -1,34 +1,34 @@
 from discord import Interaction, Embed, Message, User
 from .panorama import Panorama
+import asyncio
 import pandas as pd
 import time
-
-# Load panorama data
-country_data = pd.read_csv('./resources/country_data.csv')
-panormas = pd.read_csv('./resources/panoramas.csv')
+from .cog import COUNTRY_DATA, PANORAMAS
 
 class Challenge:
     def __init__(self):
         self.guesses = set()
         self.message : Message = None
-        self.country : str = ""
-        self.pano : Panorama
-        self.ended = False
+        self.pano : Panorama = None
+        self.timer : asyncio.Task = None
+
+    # Function to wait a specified amount of time before ending the challenge
+    async def wait_for_end(self, time_limit: int):
+        await asyncio.sleep(time_limit)
+        await self.end()
 
     # Start the challenge
-    async def start(self, interaction: Interaction, timer: int = 0):
+    async def start(self, interaction: Interaction, time_limit: int = 0):
 
-        # Get a random country
-        self.country, _, country_iso3= country_data.sample().iloc[0].to_list()
-        
-        # Get a random pano from the country
-        pano_info = panormas[panormas['country'] == country_iso3].sample().iloc[0]
-        self.pano = Panorama(pano_info['pano_id'], pano_info['lat'], pano_info['long'], pano_info['date'], pano_info['country'])
+        # Pick a random country and panorama
+        name, iso2, _= COUNTRY_DATA.sample().iloc[0].to_list()
+        pano_info = PANORAMAS[PANORAMAS['country'] == iso2].sample().iloc[0]
+        self.pano = Panorama(pano_info['pano_id'], pano_info['lat'], pano_info['long'], pano_info['date'], name, iso2)
 
         # Future time
         title = f'Country Challenge'
-        if timer > 0:
-            future_timestamp = int(time.time()) + timer
+        if time_limit > 0:
+            future_timestamp = int(time.time()) + time_limit
             title += f'\n`Ends`<t:{future_timestamp}:R>'
         
         # Create an embed
@@ -40,50 +40,50 @@ class Challenge:
         # Send the embed
         self.message = await interaction.followup.send(embed=self.embed)
 
+        # Start the timer
+        if time_limit > 0:
+            self.timer = asyncio.create_task(self.wait_for_end(time_limit))
+
     # Make a guess
-    async def make_guess(self, interaction: Interaction, guess: str) -> bool:
+    async def make_guess(self, interaction: Interaction, guess: str):
 
         # Check if the guess is a valid country
         guess = guess.lower()
-        if guess not in country_data['name'].str.lower().values:
+        if guess not in COUNTRY_DATA['alpha-2'].str.lower().values:
             await interaction.response.send_message('Invalid country guess', ephemeral=True, delete_after=5)
             return False
 
-        # Grab the country data
-        name, iso2, iso3 = country_data[country_data['name'].str.lower() == guess].iloc[0].to_list()
-
         # Add to the guesses set
-        self.guesses.add(f":flag_{iso2.lower()}:")
+        self.guesses.add(f":flag_{guess.lower()}:")
         self.embed.set_field_at(0, name='Guesses', value=','.join(self.guesses), inline=False)
         await self.message.edit(embed=self.embed)
 
         # Check if the guess is correct
-        if iso3 == self.country:
-            await interaction.response.send_message('Correct!', ephemeral=True, delete_after=5)
-            return True
-        else:
+        if guess != self.pano.country:
             await interaction.response.send_message('Incorrect guess', ephemeral=True, delete_after=5)
-            return False
+        
+        # If the guess is correct, end the challenge
+        await interaction.response.send_message('Correct!', ephemeral=True, delete_after=5)
+        self.end(interaction.user)
 
     # End the challenge
     async def end(self, winner: User = None):
-        
-        # Check if the challenge has already ended
-        if self.ended:
-            return
 
-        self.ended = True
-
-        # Get country info
-        name, iso2, _ = country_data[country_data['alpha-3'] == self.country].iloc[0].to_list()
+        # Cancel the timer
+        if self.timer:
+            self.timer.cancel()
         
         # Build final embed
         end_embed : Embed = None
         if winner:
-            end_embed = Embed(title=f'Game Over!', description=f'**{winner.mention}** correctly guessed {name} :flag_{iso2.lower()}:', color=0x00ff00)
+            end_embed = Embed(title=f'Game Over!', 
+                              description=f'**{winner.mention}** correctly guessed {self.pano.country} :flag_{self.pano.iso2.lower()}:', 
+                              color=0x00ff00)
             end_embed.set_thumbnail(url=winner.avatar)
         else:
-            end_embed = Embed(title=f'Times up!', description=f'The country was {name} :flag_{iso2.lower()}:', color=0xff0000)
+            end_embed = Embed(title=f'Times up!', 
+                              description=f'The country was {self.pano.country} :flag_{self.pano.iso2.lower()}:', 
+                              color=0xff0000)
             end_embed.set_thumbnail(url=self.pano.get_image_url())
         end_embed.set_footer(text="Bot created by Tyler.")
 

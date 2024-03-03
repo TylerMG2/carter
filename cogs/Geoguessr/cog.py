@@ -5,8 +5,9 @@ import asyncio
 import pandas as pd
 import typing
 
-# Load country data
-country_data = pd.read_csv('./resources/country_data.csv')
+# Load Data
+COUNTRY_DATA = pd.read_csv('./resources/country_data.csv')
+PANORAMAS = pd.read_csv('./resources/panoramas.csv')
 
 # Geoguessr cog for commands associated with the geoguessr game
 class Geoguessr(commands.Cog):
