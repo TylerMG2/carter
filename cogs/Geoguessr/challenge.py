@@ -1,11 +1,11 @@
 from discord import Interaction, Embed, Message, User
 from .panorama import Panorama
-from .streetview import get_pano_in_country
 import pandas as pd
 import time
 
-# Load country_data.csv
+# Load panorama data
 country_data = pd.read_csv('./resources/country_data.csv')
+panormas = pd.read_csv('./resources/panoramas.csv')
 
 class Challenge:
     def __init__(self):
@@ -19,12 +19,14 @@ class Challenge:
     async def start(self, interaction: Interaction, timer: int = 0):
 
         # Get a random country
-        _, _, self.country = country_data.sample().iloc[0].to_list()
-        self.pano = await get_pano_in_country(self.country)
-
-        title = f'Country Challenge'
+        self.country, _, country_iso3= country_data.sample().iloc[0].to_list()
+        
+        # Get a random pano from the country
+        pano_info = panormas[panormas['country'] == country_iso3].sample().iloc[0]
+        self.pano = Panorama(pano_info['pano_id'], pano_info['lat'], pano_info['long'], pano_info['date'], pano_info['country'])
 
         # Future time
+        title = f'Country Challenge'
         if timer > 0:
             future_timestamp = int(time.time()) + timer
             title += f'\n`Ends`<t:{future_timestamp}:R>'

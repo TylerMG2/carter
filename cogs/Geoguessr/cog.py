@@ -2,6 +2,11 @@ from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
 import asyncio
+import pandas as pd
+import typing
+
+# Load country data
+country_data = pd.read_csv('./resources/country_data.csv')
 
 # Geoguessr cog for commands associated with the geoguessr game
 class Geoguessr(commands.Cog):
@@ -43,10 +48,21 @@ class Geoguessr(commands.Cog):
             # End the challenge
             if not new_challenge.ended:
                 self.challenges.pop(interaction.channel_id)
-                await new_challenge.end()     
+                await new_challenge.end()   
+
+    # Autocomplete for the guess command
+    async def guess_autocomplete(self, interaction: Interaction, current: str) -> typing.List[app_commands.Choice[str]]:
+        options : typing.List[app_commands.Choice[str]] = []
+        for country in country_data['name']:
+            if country.lower().startswith(current.lower()):
+                options.append(app_commands.Choice(name=country, value=country))
+        
+        # Only return first 25 options
+        return options[:25]  
     
     # Guess slash command
     @app_commands.command(name='guess', description='Guess the location of the geoguessr challenge')
+    @app_commands.autocomplete(country=guess_autocomplete)
     async def guess(self, interaction: Interaction, country: str):
 
         # Check if the challenge exists
@@ -63,6 +79,7 @@ class Geoguessr(commands.Cog):
             await challenge.end(interaction.user)
             if interaction.channel_id in self.challenges:
                 self.challenges.pop(interaction.channel_id)
+
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):
