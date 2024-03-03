@@ -1,7 +1,9 @@
 from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
+from .data import COUNTRIES
 import asyncio
+import typing
 
 # Geoguessr cog for commands associated with the geoguessr game
 class Geoguessr(commands.Cog):
@@ -23,30 +25,37 @@ class Geoguessr(commands.Cog):
     @app_commands.command(name='challenge', description='Create a new geoguessr challenge')
     async def challenge(self, interaction: Interaction, timer: int = 0):
 
+        # Check if the time limit is too large
+        if timer > 600:
+            await interaction.response.send_message('Time limit must be less then 600 seconds.', ephemeral=True)
+            return
+
         # Deferring the response
         await interaction.response.defer(thinking=True)
 
         # If there is already a challenge in the channel, delete it
         if interaction.channel_id in self.challenges:
-            self.challenges.pop(interaction.channel_id)
-            await self.challenges[interaction.channel_id].end()
+            old_challenge = self.challenges.pop(interaction.channel_id)
+            await old_challenge.end()
             
         # Add the challenge to the challenges list
-        new_challenge = Challenge()
-        await new_challenge.start(interaction, timer=timer)
+        new_challenge = Challenge(self.bot)
+        await new_challenge.start(interaction, time_limit=timer)
         self.challenges[interaction.channel_id] = new_challenge
 
-        # Wait for the challenge to end
-        if timer > 0:
-            await asyncio.sleep(timer)
-
-            # End the challenge
-            if not new_challenge.ended:
-                self.challenges.pop(interaction.channel_id)
-                await new_challenge.end()     
+    # Autocomplete for the guess command
+    async def guess_autocomplete(self, _: Interaction, current: str) -> typing.List[app_commands.Choice[str]]:
+        options : typing.List[app_commands.Choice[str]] = []
+        for iso2, name in COUNTRIES.items():
+            if name.lower().startswith(current.lower()):
+                options.append(app_commands.Choice(name=name, value=iso2))
+        
+        # Only return first 5 options
+        return options[:5]  
     
     # Guess slash command
     @app_commands.command(name='guess', description='Guess the location of the geoguessr challenge')
+    @app_commands.autocomplete(country=guess_autocomplete)
     async def guess(self, interaction: Interaction, country: str):
 
         # Check if the challenge exists
@@ -63,6 +72,7 @@ class Geoguessr(commands.Cog):
             await challenge.end(interaction.user)
             if interaction.channel_id in self.challenges:
                 self.challenges.pop(interaction.channel_id)
+
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):
