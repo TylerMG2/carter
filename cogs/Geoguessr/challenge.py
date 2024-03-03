@@ -51,16 +51,17 @@ class Challenge:
         guess = guess.lower()
         if guess not in COUNTRY_DATA['alpha-2'].str.lower().values:
             await interaction.response.send_message('Invalid country guess', ephemeral=True, delete_after=5)
-            return False
-
-        # Add to the guesses set
-        self.guesses.add(f":flag_{guess.lower()}:")
-        self.embed.set_field_at(0, name='Guesses', value=','.join(self.guesses), inline=False)
-        await self.message.edit(embed=self.embed)
+            return
 
         # Check if the guess is correct
         if guess != self.pano.country:
             await interaction.response.send_message('Incorrect guess', ephemeral=True, delete_after=5)
+
+            # Add to the guesses set
+            self.guesses.add(f":flag_{guess.lower()}:")
+            self.embed.set_field_at(0, name='Guesses', value=','.join(self.guesses), inline=False)
+            await self.message.edit(embed=self.embed)
+            return
         
         # If the guess is correct, end the challenge
         await interaction.response.send_message('Correct!', ephemeral=True, delete_after=5)

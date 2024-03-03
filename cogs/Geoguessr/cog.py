@@ -54,7 +54,7 @@ class Geoguessr(commands.Cog):
     # Autocomplete for the guess command
     async def guess_autocomplete(self, interaction: Interaction, current: str) -> typing.List[app_commands.Choice[str]]:
         options : typing.List[app_commands.Choice[str]] = []
-        for country in country_data['name']:
+        for country in COUNTRY_DATA['name']:
             if country.lower().startswith(current.lower()):
                 options.append(app_commands.Choice(name=country, value=country))
         
