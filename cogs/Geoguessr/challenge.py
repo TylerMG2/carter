@@ -1,9 +1,9 @@
 from discord import Interaction, Embed, Message, User
 from .panorama import Panorama
 import asyncio
-import pandas as pd
 import time
-from .cog import COUNTRY_DATA, PANORAMAS
+import random
+from .data import COUNTRIES, PANORAMAS
 
 class Challenge:
     def __init__(self):
@@ -21,9 +21,9 @@ class Challenge:
     async def start(self, interaction: Interaction, time_limit: int = 0):
 
         # Pick a random country and panorama
-        name, iso2, _= COUNTRY_DATA.sample().iloc[0].to_list()
-        pano_info = PANORAMAS[PANORAMAS['country'] == iso2].sample().iloc[0]
-        self.pano = Panorama(pano_info['pano_id'], pano_info['lat'], pano_info['long'], pano_info['date'], name, iso2)
+        country_iso2 = random.choice(COUNTRIES.keys())
+        pano_info = PANORAMAS[PANORAMAS['country'] == country_iso2].sample().iloc[0]
+        self.pano = Panorama(pano_info['pano_id'], pano_info['lat'], pano_info['long'], pano_info['date'], COUNTRIES[country_iso2], country_iso2)
 
         # Future time
         title = f'Country Challenge'
@@ -49,12 +49,12 @@ class Challenge:
 
         # Check if the guess is a valid country
         guess = guess.lower()
-        if guess not in COUNTRY_DATA['alpha-2'].str.lower().values:
+        if guess not in COUNTRIES:
             await interaction.response.send_message('Invalid country guess', ephemeral=True, delete_after=5)
             return
 
         # Check if the guess is correct
-        if guess != self.pano.country:
+        if guess != self.pano.iso2:
             await interaction.response.send_message('Incorrect guess', ephemeral=True, delete_after=5)
 
             # Add to the guesses set

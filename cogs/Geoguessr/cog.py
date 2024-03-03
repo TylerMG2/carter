@@ -1,13 +1,9 @@
 from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
+from .data import COUNTRIES
 import asyncio
-import pandas as pd
 import typing
-
-# Load Data
-COUNTRY_DATA = pd.read_csv('./resources/country_data.csv')
-PANORAMAS = pd.read_csv('./resources/panoramas.csv')
 
 # Geoguessr cog for commands associated with the geoguessr game
 class Geoguessr(commands.Cog):
@@ -52,11 +48,11 @@ class Geoguessr(commands.Cog):
                 await new_challenge.end()   
 
     # Autocomplete for the guess command
-    async def guess_autocomplete(self, interaction: Interaction, current: str) -> typing.List[app_commands.Choice[str]]:
+    async def guess_autocomplete(self, _: Interaction, current: str) -> typing.List[app_commands.Choice[str]]:
         options : typing.List[app_commands.Choice[str]] = []
-        for country in COUNTRY_DATA['name']:
-            if country.lower().startswith(current.lower()):
-                options.append(app_commands.Choice(name=country, value=country))
+        for iso2, name in COUNTRIES.items():
+            if name.lower().startswith(current.lower()):
+                options.append(app_commands.Choice(name=name, value=iso2))
         
         # Only return first 25 options
         return options[:25]  

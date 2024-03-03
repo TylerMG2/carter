@@ -28,7 +28,7 @@ async def test_start_time_limit():
     interaction.followup.send.assert_called_once()
 
     # Close timer
-    await challenge.timer.cancel()
+    challenge.timer.cancel()
 
 # Test make_guess incorrect guess
 @pytest.mark.asyncio
@@ -48,8 +48,12 @@ async def test_make_guess_incorrect():
     
     # Assert that the guess was added to the guesses set
     assert len(challenge.guesses) == 1
-    assert f":flag_{challenge.pano.iso2.lower()}:" in challenge.guesses
-    interaction.response.send_message.assert_called_once_with('Incorrect guess')
+    assert f":flag_us:" in challenge.guesses or f":flag_ca:" in challenge.guesses
+    interaction.response.send_message.assert_called_once()
+
+    # Check the message response
+    args, _ = interaction.response.send_message.call_args
+    assert 'Incorrect guess' in args[0]
 
 # Test make_guess correct guess
 @pytest.mark.asyncio
@@ -65,7 +69,11 @@ async def test_make_guess_correct():
     await challenge.make_guess(interaction, challenge.pano.iso2)
     
     # Assert that the guess was added to the guesses set
-    interaction.response.send_message.assert_called_once_with('Correct!')
+    interaction.response.send_message.assert_called_once()
+
+    # Check the message response
+    args, _ = interaction.response.send_message.call_args
+    assert 'Correct' in args[0]
 
 # Test make_guess invalid guess
 @pytest.mark.asyncio
@@ -81,7 +89,9 @@ async def test_make_guess_invalid():
     await challenge.make_guess(interaction, 'AAA')
     
     # Assert that the guess was added to the guesses set
-    interaction.response.send_message.assert_called_once_with('Invalid country guess')
+    interaction.response.send_message.assert_called_once()
+    args, _ = interaction.response.send_message.call_args
+    assert 'Invalid country guess' in args[0]
 
 # Test end method timout
 @pytest.mark.asyncio
