@@ -1,26 +1,21 @@
 ## Load country_data.csv
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import Point, Polygon
-from ..streetview import get_pano_in_country
 import pytest
-
-# Load country data
-country_data = pd.read_csv('./resources/country_data.csv')
-panoramas = pd.read_csv('./resources/panoramas.csv')
+from ..data import COUNTRIES, PANORAMAS
 
 # Load world map
 world = gpd.read_file('./resources/country_shapes.geojson')
 
 # Test that all the countries in the country_data.csv file are in the world map
 def test_country_data():
-    for country in country_data['alpha-3']:
-        assert country in world['iso3'].values
+    for country in COUNTRIES:
+        assert country in world['iso_3166_1_alpha_2_codes'].values
 
 # Test that all countries have at least one panorama
 def test_country_panos():
-    for country in country_data['alpha-3']:
-        assert panoramas[panoramas['country'] == country].shape[0] > 0
+    for country in COUNTRIES:
+        assert PANORAMAS[PANORAMAS['country'] == country].shape[0] > 0
 
 # Test get_pano_in_country for each country
 # @pytest.mark.asyncio
