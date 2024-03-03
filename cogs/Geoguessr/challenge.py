@@ -21,7 +21,7 @@ class Challenge:
     async def start(self, interaction: Interaction, time_limit: int = 0):
 
         # Pick a random country and panorama
-        country_iso2 = random.choice(COUNTRIES.keys())
+        country_iso2 = random.choice(list(COUNTRIES.keys()))
         pano_info = PANORAMAS[PANORAMAS['country'] == country_iso2].sample().iloc[0]
         self.pano = Panorama(pano_info['pano_id'], pano_info['lat'], pano_info['long'], pano_info['date'], COUNTRIES[country_iso2], country_iso2)
 
@@ -48,7 +48,6 @@ class Challenge:
     async def make_guess(self, interaction: Interaction, guess: str):
 
         # Check if the guess is a valid country
-        guess = guess.lower()
         if guess not in COUNTRIES:
             await interaction.response.send_message('Invalid country guess', ephemeral=True, delete_after=5)
             return

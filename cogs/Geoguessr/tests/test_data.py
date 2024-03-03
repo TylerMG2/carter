@@ -9,12 +9,12 @@ world = gpd.read_file('./resources/country_shapes.geojson')
 
 # Test that all the countries in the country_data.csv file are in the world map
 def test_country_data():
-    for country in COUNTRIES['alpha-3']:
-        assert country in world['iso3'].values
+    for country in COUNTRIES:
+        assert country in world['iso_3166_1_alpha_2_codes'].values
 
 # Test that all countries have at least one panorama
 def test_country_panos():
-    for country in COUNTRIES['alpha-2']:
+    for country in COUNTRIES:
         assert PANORAMAS[PANORAMAS['country'] == country].shape[0] > 0
 
 # Test get_pano_in_country for each country

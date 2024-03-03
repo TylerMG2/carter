@@ -35,17 +35,8 @@ class Geoguessr(commands.Cog):
             
         # Add the challenge to the challenges list
         new_challenge = Challenge()
-        await new_challenge.start(interaction, timer=timer)
+        await new_challenge.start(interaction, time_limit=timer)
         self.challenges[interaction.channel_id] = new_challenge
-
-        # Wait for the challenge to end
-        if timer > 0:
-            await asyncio.sleep(timer)
-
-            # End the challenge
-            if not new_challenge.ended:
-                self.challenges.pop(interaction.channel_id)
-                await new_challenge.end()   
 
     # Autocomplete for the guess command
     async def guess_autocomplete(self, _: Interaction, current: str) -> typing.List[app_commands.Choice[str]]:

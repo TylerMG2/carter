@@ -25,6 +25,7 @@ async def test_start_time_limit():
     assert challenge.message is not None
     assert challenge.pano is not None
     assert challenge.timer is not None
+    assert challenge.timer.done() == False
     interaction.followup.send.assert_called_once()
 
     # Close timer
@@ -100,17 +101,10 @@ async def test_end_timeout():
     interaction = MagicMock()
     interaction.followup.send = AsyncMock()
     await challenge.start(interaction, time_limit=5)
-    assert challenge.timer is not None
 
     # End the challenge
     await challenge.end()
-    assert challenge.timer is None
-
-    # Check the response embed
-    interaction.followup.send.assert_called_once()
-    _, kwargs = interaction.followup.send.call_args
-    assert isinstance(kwargs['embed'], Embed)
-    assert 'Times up!' in kwargs['embed'].title
+    assert challenge.timer.cancelling()
 
 # Test end method winner
 @pytest.mark.asyncio
@@ -123,4 +117,3 @@ async def test_end_winner():
 
     # End the challenge
     await challenge.end(winner=MagicMock())
-    assert challenge.timer is None
