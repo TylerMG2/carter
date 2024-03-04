@@ -1,103 +1,93 @@
 from discord import Interaction, Embed, Message, User
 from discord.ext import commands
 from .panorama import Panorama
-import asyncio
 import time
 import random
 from .data import COUNTRIES, PANORAMAS
+from enum import Enum
+
+# Strings
+CHALLENGE_DESCRIPTION = '''You can make a guess with the `/guess` command.
+Googles [Privacy Policy](http://www.google.com/policies/privacy) and [Terms of Sevice](http://www.google.com/intl/en/policies/terms)'''
+INVALID_COUNTRY = 'Invalid country guess'
+PLAYER_WON_DESCRIPTION = '**{0:}** correctly guessed {1:} :flag_{2:}:\n[**Street View**:link:]({3:})'
+TIMES_UP_DESCRIPTION = 'The country was {0:} :flag_{1:}:\n[**Street View**:link:]({2:})'
+STREETVIEW_DESCRIPTION = 'Check out the streetview [**here**]({0:}).'
+
+# Status enum
+class ChallengeStatus(Enum):
+    PENDING = 0
+    ACTIVE = 1
+    ENDED = 2
 
 class Challenge:
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
+
+    def __init__(self, author_id: int, time_limit: int = 0):
+        self.time_limit : int = time_limit
+        self.author_id : int = author_id
         self.guesses = set()
-        self.channel_id : int = None
-        self.message_id : int = None
         self.pano : Panorama = None
-        self.timer : asyncio.Task = None
+        self.status : ChallengeStatus = ChallengeStatus.PENDING
+        self.winner : User = None
 
-    # Function to wait a specified amount of time before ending the challenge
-    async def wait_for_end(self, time_limit: int):
-        await asyncio.sleep(time_limit)
-        await self.end()
-    
-    # Get the challenge message
-    async def get_message(self) -> Message:
-        return await self.bot.get_channel(self.channel_id).fetch_message(self.message_id)
-
-    # Start the challenge
-    async def start(self, interaction: Interaction, time_limit: int = 0):
-
-        # Pick a random country and panorama
+    # Function to pick a random country and panorama
+    def pick_random_pano(self) -> Panorama:
         country_iso2 = random.choice(list(COUNTRIES.keys()))
-        print(country_iso2, COUNTRIES[country_iso2])
         pano_info = PANORAMAS[PANORAMAS['country'] == country_iso2].sample().iloc[0]
-        self.pano = Panorama(pano_info['pano_id'], pano_info['lat'], pano_info['long'], pano_info['date'], COUNTRIES[country_iso2], country_iso2)
-
-        # Future time
-        title = f'Country Challenge'
-        if time_limit > 0:
-            future_timestamp = int(time.time()) + time_limit
-            title += f'\n`Ends`<t:{future_timestamp}:R>'
+        return Panorama(pano_info['pano_id'], pano_info['lat'], pano_info['long'], pano_info['date'], COUNTRIES[country_iso2], country_iso2)
         
-        # Create an embed
-        self.embed = Embed(title=title, description=f'You can make a guess with the `/guess` command.\nGoogles [Privacy Policy](http://www.google.com/policies/privacy) and [Terms of Sevice](http://www.google.com/intl/en/policies/terms)', color=0x0000ff)
-        self.embed.set_image(url=self.pano.get_image_url())
-        self.embed.add_field(name='Guesses', value='', inline=False)
-        self.embed.set_footer(text='Bot created by Tyler')
-
-        # Send the embed
-        message = await interaction.followup.send(embed=self.embed)
-        self.channel_id = interaction.channel_id
-        self.message_id = message.id
-
-        # Start the timer
-        if time_limit > 0:
-            self.timer = asyncio.create_task(self.wait_for_end(time_limit))
+    # Start the challenge
+    async def start(self) -> Embed:
+        self.status = ChallengeStatus.ACTIVE
+        self.pano = self.pick_random_pano()
+        return self.to_embed()
 
     # Make a guess
-    async def make_guess(self, interaction: Interaction, guess: str):
+    async def make_guess(self, guess: str) -> bool:
 
         # Check if the guess is a valid country
         if (guess not in COUNTRIES.keys()) and (guess not in COUNTRIES.values()):
-            await interaction.response.send_message('Invalid country guess', ephemeral=True, delete_after=5)
-            return
+            raise ValueError(INVALID_COUNTRY)
 
-        # Check if the guess is correct
+        # Check if the guess is incorrect
         if (guess != self.pano.iso2) and (guess.lower() != self.pano.country.lower()):
-            await interaction.response.send_message('Incorrect guess', ephemeral=True, delete_after=5)
-
-            # Add to the guesses set
             self.guesses.add(f":flag_{guess.lower()}:")
-            self.embed.set_field_at(0, name='Guesses', value=','.join(self.guesses), inline=False)
-            message = await self.get_message()
-            await message.edit(embed=self.embed)
-            return
-        
-        # If the guess is correct, end the challenge
-        await interaction.response.send_message('Correct!', ephemeral=True, delete_after=5)
-        await self.end(interaction.user)
+            return False
+        return True
 
     # End the challenge
-    async def end(self, winner: User = None):
-        
-        # Build final embed
-        end_embed : Embed = None
-        if winner:
-            end_embed = Embed(title=f'Game Over!', 
-                              description=f'**{winner.mention}** correctly guessed {self.pano.country} :flag_{self.pano.iso2.lower()}:\n[**Street View**:link:]({self.pano.get_streetview_url()})', 
-                              color=0x00ff00)
-            end_embed.set_thumbnail(url=winner.avatar)
+    async def end(self, winner: User = None) -> Embed:
+
+        # Check challenge status
+        if self.status == ChallengeStatus.ENDED:
+            return None
+        self.status = ChallengeStatus.ENDED
+        self.winner = winner
+        return self.to_embed()
+    
+    # Convert the challenge to an embed
+    def to_embed(self) -> Embed:
+
+        # Build embed
+        title = 'Country Challenge'
+        description = CHALLENGE_DESCRIPTION
+        colour = 0x0000ff
+
+        if self.status == ChallengeStatus.ENDED:
+            if self.winner:
+                description = PLAYER_WON_DESCRIPTION.format(self.winner.mention, self.pano.country, self.pano.iso2.lower(), self.pano.get_streetview_url())
+                colour = 0x00ff00
+            else:
+                description = TIMES_UP_DESCRIPTION.format(self.pano.country, self.pano.iso2.lower(), self.pano.get_streetview_url())
+                colour = 0xff0000
+        embed = Embed(title=title, description=description, color=colour)
+
+        # Add image
+        if self.status == ChallengeStatus.ACTIVE:
+            embed.set_image(url=self.pano.get_image_url())
+            embed.add_field(name='Guesses', value='\n'.join(self.guesses), inline=False)
         else:
-            end_embed = Embed(title=f'Times up!', 
-                              description=f'The country was {self.pano.country} :flag_{self.pano.iso2.lower()}:\n[**Street View**:link:]({self.pano.get_streetview_url()})', 
-                              color=0xff0000)
-            end_embed.set_thumbnail(url=self.pano.get_image_url())
-        end_embed.set_footer(text="Bot created by Tyler.")
-
-        # Update the challenge message
-        message = await self.get_message()
-        await message.edit(embed=end_embed)
-
-        # Cancel the timer
-        if self.timer:
-            self.timer.cancel()
+            embed.set_thumbnail(url=self.pano.get_image_url())
+            embed.add_field(name='Google Street View', value=STREETVIEW_DESCRIPTION.format(self.pano.get_streetview_url()), inline=False)
+        embed.set_footer(text='Bot created by Tyler')
+        return embed
