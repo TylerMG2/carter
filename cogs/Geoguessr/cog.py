@@ -5,6 +5,8 @@ from .data import COUNTRIES
 import asyncio
 import typing
 
+MAX_TIME_LIMIT = 600 # 10 minutes
+
 # Geoguessr cog for commands associated with the geoguessr game
 class Geoguessr(commands.Cog):
 
@@ -26,12 +28,9 @@ class Geoguessr(commands.Cog):
     async def challenge(self, interaction: Interaction, timer: int = 0):
 
         # Check if the time limit is too large
-        if timer > 600:
-            await interaction.response.send_message('Time limit must be less then 600 seconds.', ephemeral=True)
+        if timer > MAX_TIME_LIMIT:
+            await interaction.response.send_message(f'Time limit must be less then {MAX_TIME_LIMIT} seconds.', ephemeral=True)
             return
-
-        # Deferring the response
-        await interaction.response.defer(thinking=True)
 
         # If there is already a challenge in the channel, delete it
         if interaction.channel_id in self.challenges:

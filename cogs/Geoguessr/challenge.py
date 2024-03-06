@@ -74,6 +74,7 @@ class Challenge:
         colour = 0x0000ff
 
         if self.status == ChallengeStatus.ENDED:
+            title = 'Challenge Over'
             if self.winner:
                 description = PLAYER_WON_DESCRIPTION.format(self.winner.mention, self.pano.country, self.pano.iso2.lower(), self.pano.get_streetview_url())
                 colour = 0x00ff00
