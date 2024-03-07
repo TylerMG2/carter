@@ -111,9 +111,9 @@ class EmbedMessage(Embed):
         return message
 
     # Function to update the embeds message
-    async def update(self) -> None:
+    async def update(self) -> Message:
         message = await self.get_message()
-        await message.edit(embed=self)
+        return await message.edit(embed=self)
 
     # Function to delete an embed
     async def delete(self) -> None:
