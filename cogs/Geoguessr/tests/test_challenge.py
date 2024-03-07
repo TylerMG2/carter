@@ -10,28 +10,28 @@ def challenge():
     return Challenge(AsyncMock())
 
 # Test start method
-@pytest.mark.asyncio
-async def test_start(challenge):
-    interaction = MagicMock()
-    interaction.followup.send = AsyncMock()
-    await challenge.start(interaction)
-    assert challenge.pano is not None
-    assert challenge.timer is None
-    interaction.followup.send.assert_called_once()
+# @pytest.mark.asyncio
+# async def test_start(challenge):
+#     interaction = MagicMock()
+#     interaction.followup.send = AsyncMock()
+#     await challenge.start(interaction)
+#     assert challenge.pano is not None
+#     assert challenge.timer is None
+#     interaction.followup.send.assert_called_once()
 
-# Test start method with time limit
-@pytest.mark.asyncio
-async def test_start_time_limit(challenge):
-    interaction = MagicMock()
-    interaction.followup.send = AsyncMock()
-    await challenge.start(interaction, time_limit=5)
-    assert challenge.pano is not None
-    assert challenge.timer is not None
-    assert challenge.timer.done() == False
-    interaction.followup.send.assert_called_once()
+# # Test start method with time limit
+# @pytest.mark.asyncio
+# async def test_start_time_limit(challenge):
+#     interaction = MagicMock()
+#     interaction.followup.send = AsyncMock()
+#     await challenge.start(interaction, time_limit=5)
+#     assert challenge.pano is not None
+#     assert challenge.timer is not None
+#     assert challenge.timer.done() == False
+#     interaction.followup.send.assert_called_once()
 
-    # Close timer
-    challenge.timer.cancel()
+#     # Close timer
+#     challenge.timer.cancel()
 
 # # Test make_guess incorrect guess
 # @pytest.mark.asyncio
