@@ -1,11 +1,10 @@
-from discord import Interaction, Embed, Message, User
+from discord import Message, User
 from discord.ext import commands
 from .panorama import Panorama
-from ...utils.embed_manager import EmbedMessage
+from utils.embed_manager import EmbedMessage
 import time
 import random
 from .data import COUNTRIES, PANORAMAS
-from enum import Enum
 
 # Strings
 CHALLENGE_IN_PROGRESS_COLOR = 0x0000ff
@@ -51,24 +50,22 @@ class Challenge:
         return await self.embed_message.send(channel_id)
         
     # Make a guess
-    async def make_guess(self, guess: str) -> Message:
+    async def add_guess(self, guess: str) -> bool:
 
         # Check if the guess is a valid country
         if (guess not in COUNTRIES.keys()) and (guess not in COUNTRIES.values()):
             raise ValueError(f"Invalid country guess: {guess}")
         
+        # Check if the guess is correct
+        if guess.lower() == self.pano.iso2.lower() or guess.lower() == self.pano.country.lower():
+            return True
+        
         # Build guess flags
         self.guesses.add(guess)
         guess_flags = [f":flag_{guess.lower()}" for guess in self.guesses]
         self.embed_message.set_field_at(0, name='Guesses', value='  '.join(guess_flags), inline=False)
-        return await self.embed_message.update()
-
-    # Set challenge winner
-    async def set_winner(self, winner: User) -> Message:
-        if self.ended:
-            return
-        self.ended = True
-        
+        await self.embed_message.update()
+        return False
     
     # End the challenge
     async def end(self, winner: User = None) -> Message:

@@ -38,9 +38,15 @@ class Geoguessr(commands.Cog):
             await old_challenge.end()
             
         # Add the challenge to the challenges list
-        new_challenge = Challenge(self.bot)
+        new_challenge = Challenge(self.bot, interaction.user.id)
         await new_challenge.start(interaction, time_limit=timer)
         self.challenges[interaction.channel_id] = new_challenge
+
+        # Start timer
+        if timer > 0:
+            await asyncio.sleep(timer)
+            if interaction.channel_id in self.challenges:
+                await new_challenge.end()
 
     # Autocomplete for the guess command
     async def guess_autocomplete(self, _: Interaction, current: str) -> typing.List[app_commands.Choice[str]]:
@@ -69,11 +75,11 @@ class Geoguessr(commands.Cog):
         
         # Add the guess to the challenge
         challenge = self.challenges[interaction.channel_id]
-        result = await challenge.make_guess(interaction, country)
+        correct = await challenge.add_guess(interaction, country)
 
         # If the result is true, end the challenge
-        if result:
-            await challenge.end(interaction.user)
+        if correct:
+            await challenge.end(winner=interaction.user)
             if interaction.channel_id in self.challenges:
                 self.challenges.pop(interaction.channel_id)
 
