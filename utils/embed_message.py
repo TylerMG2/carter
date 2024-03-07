@@ -85,7 +85,7 @@ class EmbedMessage(Embed):
         self.set_author(name=author.display_name, icon_url=author.display_avatar.url)
     
     # Function to reset current embed values and set new valies
-    def update_embed(self, title: str, description: str, color: int = 0x00ff00) -> Embed:
+    def update_embed(self, title: str = None, description: str = None, color: int = 0x00ff00) -> Embed:
 
         # Retain author
         author = self.author
