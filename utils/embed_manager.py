@@ -99,3 +99,25 @@ class EmbedManager:
         if message:
             await message.delete()
 
+
+class EmbedMessage(Embed):
+
+    def __init__(self, title: str, description: str, color: int = 0x00ff00, author_id: int = None):
+        super().__init__(title=title, description=description, color=color)
+        self.author_id = author_id
+        self.set_footer(text=EmbedManager.FOOTER_TEST)
+
+    async def send(self, channel_id: int, bot: commands.Bot) -> None:
+        channel = bot.get_channel(channel_id)
+        message = await channel.send(embed=self)
+        return message.id
+
+    async def update(self, message_id: int, channel_id: int, bot: commands.Bot) -> None:
+        channel = bot.get_channel(channel_id)
+        message = await channel.fetch_message(message_id)
+        await message.edit(embed=self)
+
+    async def delete(self, message_id: int, channel_id: int, bot: commands.Bot) -> None:
+        channel = bot.get_channel(channel_id)
+        message = await channel.fetch_message(message_id)
+        await message.delete()
