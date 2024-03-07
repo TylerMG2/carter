@@ -7,6 +7,6 @@ A docker image is a available for this bot, run it with the following command (r
 docker run -e BOT_TOKEN={YOUR_BOT_TOKEN} ghcr.io/tylermg2/carter:main
 ```
 
-You can create a discord bot token at (Discord Developers)[https://discord.com/developers/applications] and you can create a streetview API token at (Maps API)[https://console.cloud.google.com/google/maps-apis/].
+You can create a discord bot token at [Discord Developers](https://discord.com/developers/applications) and you can create a streetview API token at [Maps API](https://console.cloud.google.com/google/maps-apis/).
 
-The bot utilizes googles metadata api for fetching panorama ids which is completely free to use, you can read more (here)[https://developers.google.com/maps/documentation/streetview/metadata].
+The bot utilizes googles metadata api for fetching panorama ids which is completely free to use, you can read more [here](https://developers.google.com/maps/documentation/streetview/metadata).
