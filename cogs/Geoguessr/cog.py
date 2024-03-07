@@ -4,8 +4,25 @@ from .challenge import Challenge
 from .data import COUNTRIES
 import asyncio
 import typing
+import random
 
 MAX_TIME_LIMIT = 600 # 10 minutes
+
+INCORRECT_MESSAGES = [
+    "Incorrect.",
+    "Nope.",
+    "Try again.",
+    "Not quite.",
+    "Wrong.",
+    "Nearly (This means absolutely nothing)"
+]
+
+CORRECT_MESSAGES = [
+    "Correct!",
+    "Nice one!",
+    "You got it!",
+    "Well done!",
+]
 
 # Geoguessr cog for commands associated with the geoguessr game
 class Geoguessr(commands.Cog):
@@ -26,6 +43,7 @@ class Geoguessr(commands.Cog):
     # Challenge slash command
     @app_commands.command(name='challenge', description='Create a new geoguessr challenge')
     async def challenge(self, interaction: Interaction, timer: int = 0):
+        await interaction.response.defer(thinking=True)
 
         # Check if the time limit is too large
         if timer > MAX_TIME_LIMIT:
@@ -38,8 +56,8 @@ class Geoguessr(commands.Cog):
             await old_challenge.end()
             
         # Add the challenge to the challenges list
-        new_challenge = Challenge(self.bot, interaction.user.id)
-        await new_challenge.start(interaction, time_limit=timer)
+        new_challenge = Challenge(self.bot, interaction)
+        await new_challenge.start(timeout=timer)
         self.challenges[interaction.channel_id] = new_challenge
 
         # Start timer
@@ -75,13 +93,18 @@ class Geoguessr(commands.Cog):
         
         # Add the guess to the challenge
         challenge = self.challenges[interaction.channel_id]
-        correct = await challenge.add_guess(interaction, country)
+        correct = await challenge.add_guess(country)
 
         # If the result is true, end the challenge
         if correct:
+            await interaction.response.send_message(f'{random.choice(CORRECT_MESSAGES)}', ephemeral=True, delete_after=5)
+
+            # End the challenge
             await challenge.end(winner=interaction.user)
             if interaction.channel_id in self.challenges:
                 self.challenges.pop(interaction.channel_id)
+        else:
+            await interaction.response.send_message(f'{random.choice(INCORRECT_MESSAGES)}', ephemeral=True, delete_after=5)
 
 
 # Setup the Geoguessr cog

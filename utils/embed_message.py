@@ -1,6 +1,4 @@
-from datetime import datetime
-from typing import Any
-from discord import Colour, Embed, Message, User
+from discord import Interaction, Embed, Message, User, WebhookMessage
 from discord.ext import commands
 
 # This class is used to manage the creation, editing and deletion of embeds
@@ -74,29 +72,32 @@ class EmbedMessage(Embed):
         return author
     
     # Function to update the author of the embed message
-    async def update_author(self, author_id: int) -> None:
+    def update_author(self, author: User) -> None:
 
         # No author, set bot as the author
-        if author_id is None:
-            self.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
+        if author is None:
+            self.author_id = None
+            self.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.display_avatar.url)
             return
         
         # Update the author_id and the embed message
-        self.author_id = author_id
-        author = await self._get_author()
-        if not author:
-            raise ValueError("Author not found")
-        self.set_author(name=author.display_name, icon_url=author.avatar.url)
+        self.author_id = author.id
+        self.set_author(name=author.display_name, icon_url=author.display_avatar.url)
     
     # Function to reset current embed values and set new valies
-    async def update_embed(self, title: str, description: str, color: int = 0x00ff00) -> Embed:
+    def update_embed(self, title: str, description: str, color: int = 0x00ff00) -> Embed:
+
+        # Retain author
+        author = self.author
         self.clear_fields()
+        self.set_image(url=None)
         self.title = title
         self.description = description
         self.color = color
 
         # Author and footer
-        await self.update_author(self.author_id)
+        if author:
+            self.set_author(name=author.name, icon_url=author.icon_url)
         self.set_footer(text=self.FOOTER_TEXT)
         return self
     
@@ -109,6 +110,12 @@ class EmbedMessage(Embed):
         self.message_id = message.id
         self.channel_id = channel_id
         return message
+    
+    # Function to respond to an interaction with an embed
+    async def respond(self, interaction: Interaction) -> None:
+        message : WebhookMessage = await interaction.followup.send(embed=self)
+        self.message_id = message.id
+        self.channel_id = interaction.channel_id
 
     # Function to update the embeds message
     async def update(self) -> Message:
