@@ -3,10 +3,11 @@ from discord import SelectOption
 from discord import Interaction
 from discord import ButtonStyle
 
-class BattleRoyaleMenuView(ui.View):
+class BattleRoyaleSettingsView(ui.View):
 
-    def __init__(self):
+    def __init__(self, game):
         super().__init__()
+        self.game = game
         self.time_limit = 60
         self.lockin_time = 5
         self.powerups = []
@@ -55,8 +56,8 @@ class BattleRoyaleMenuView(ui.View):
     # Stop button
     @ui.button(label='Create', row=3, style=ButtonStyle.green)
     async def create_button(self, interaction: Interaction, button: ui.Button):
-        await interaction.message.delete()
-        await interaction.followup.send('Starting Battle Royale...')
+        #await interaction.message.delete()
+        await self.game.create(interaction) # Tell the battle royale game to create the game
 
     
     

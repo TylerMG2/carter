@@ -1,0 +1,1 @@
+from .battle_royale_settings_view import BattleRoyaleSettingsView

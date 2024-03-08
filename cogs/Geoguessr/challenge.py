@@ -17,6 +17,21 @@ PLAYER_WON_DESCRIPTION = "**{0:}** correctly guessed **{1:} :flag_{2:}:**"
 TIMES_UP_TITLE = ":alarm_clock: Time's Up!"
 TIMES_UP_DESCRIPTION = "The country was **{0:} :flag_{1:}:**"
 STREETVIEW_TITLE = "\n\n:blue_car: [**Streetview**]({0:})"
+INCORRECT_MESSAGES = [
+    "Incorrect.",
+    "Nope.",
+    "Try again.",
+    "Not quite.",
+    "Wrong.",
+    "Nearly (This means absolutely nothing)"
+]
+
+CORRECT_MESSAGES = [
+    "Correct!",
+    "Nice one!",
+    "You got it!",
+    "Well done!",
+]
 
 class Challenge:
 
@@ -53,7 +68,7 @@ class Challenge:
         return await self.embed_message.respond(self.interaction)
         
     # Make a guess
-    async def add_guess(self, guess: str) -> bool:
+    async def add_guess(self, interaction: Interaction, guess: str) -> bool:
         guess = guess.lower()
 
         # Check if the guess is a valid country
@@ -62,6 +77,8 @@ class Challenge:
         
         # Check if the guess is correct
         if guess == self.pano.iso2.lower() or guess == self.pano.country.lower():
+            await interaction.response.send_message(f'{random.choice(CORRECT_MESSAGES)}', ephemeral=True, delete_after=5)
+            await self.end(winner=interaction.user)
             return True
         
         # Build guess flags
@@ -69,6 +86,7 @@ class Challenge:
         guess_flags = [f":flag_{guess}:" for guess in self.guesses]
         self.embed_message.set_field_at(0, name='Guesses', value='  '.join(guess_flags), inline=False)
         await self.embed_message.update()
+        await interaction.response.send_message(f'{random.choice(INCORRECT_MESSAGES)}', ephemeral=True, delete_after=5)
         return False
     
     # End the challenge

@@ -1,35 +1,21 @@
 from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
+from .battle_royale import BattleRoyale
 from .data import COUNTRIES
-from .user_interfaces.battle_royale_view import BattleRoyaleMenuView
+from .user_interfaces import BattleRoyaleSettingsView
 import asyncio
 import typing
 import random
 
 MAX_TIME_LIMIT = 600 # 10 minutes
 
-INCORRECT_MESSAGES = [
-    "Incorrect.",
-    "Nope.",
-    "Try again.",
-    "Not quite.",
-    "Wrong.",
-    "Nearly (This means absolutely nothing)"
-]
-
-CORRECT_MESSAGES = [
-    "Correct!",
-    "Nice one!",
-    "You got it!",
-    "Well done!",
-]
-
 # Geoguessr cog for commands associated with the geoguessr game
 class Geoguessr(commands.Cog):
 
     # Challenges list
     challenges : dict[int, Challenge] = {}
+    battle_royales : dict[int, BattleRoyale] = {}
 
     # Constructor
     def __init__(self, bot: commands.Bot):
@@ -94,23 +80,22 @@ class Geoguessr(commands.Cog):
         
         # Add the guess to the challenge
         challenge = self.challenges[interaction.channel_id]
-        correct = await challenge.add_guess(country)
+        correct = await challenge.add_guess(interaction, country)
 
-        # If the result is true, end the challenge
+        # If the result is true, remove the challenge
         if correct:
-            await interaction.response.send_message(f'{random.choice(CORRECT_MESSAGES)}', ephemeral=True, delete_after=5)
-
-            # End the challenge
-            await challenge.end(winner=interaction.user)
-            if interaction.channel_id in self.challenges:
-                self.challenges.pop(interaction.channel_id)
-        else:
-            await interaction.response.send_message(f'{random.choice(INCORRECT_MESSAGES)}', ephemeral=True, delete_after=5)
+            self.challenges.pop(interaction.channel_id)
 
     # Battle royale create command
     @app_commands.command(name='battleroyale', description='Create a new geoguessr battle royale lobby')
-    async def battle_royale(self, interaction: Interaction, timer: int = 0):
-        await interaction.response.send_message("Your battle royale", view=BattleRoyaleMenuView())
+    async def battle_royale(self, interaction: Interaction):
+        
+        # TODO: Handle battle royale already in progress
+
+        # Create new battle royale
+        battle_royale = BattleRoyale(self.bot)
+        self.battle_royales[interaction.channel_id] = battle_royale
+        await battle_royale.start_setup(interaction)
 
         
 
