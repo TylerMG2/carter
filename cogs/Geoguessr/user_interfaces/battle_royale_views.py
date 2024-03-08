@@ -6,8 +6,8 @@ class BattleRoyaleSettingsView(ui.View):
         super().__init__()
         self.started = None
         self.round_time = 60
-        self.lockin_time = 5
-        self.guesses = 3
+        self.lockin_time = 15
+        self.lives = 3
         self.powerups = []
 
     # Guesses select
@@ -19,7 +19,7 @@ class BattleRoyaleSettingsView(ui.View):
         SelectOption(label='5', value=5),
         ])
     async def guesses_select(self, interaction: Interaction, select: ui.Select):
-        self.guesses = select.values[0]
+        self.lives = select.values[0]
         await interaction.response.defer()
 
     # Time limit select
@@ -70,14 +70,15 @@ class BattleRoyaleSettingsView(ui.View):
         await interaction.response.edit_message(content='Creating Battle Royale...', delete_after=5)
         self.started = True
         self.stop()
-
     
 # Lobby view
 class BattleRoyaleLobbyView(ui.View):
 
-    def __init__(self, players: dict[int, int], host_id: int):
+    def __init__(self, players: dict[int, int], host_id: int, update_players: callable):
         super().__init__()
         self.players = players
+        self.host_id = host_id
+        self.update_players = update_players
 
     # Join button
     @ui.button(label='Join', emoji='✅', style=ButtonStyle.green)
@@ -85,6 +86,7 @@ class BattleRoyaleLobbyView(ui.View):
         if interaction.user.id not in self.players:
             self.players[interaction.user.id] = 0
             await interaction.response.send_message('You have joined the Battle Royale.', ephemeral=True, delete_after=5)
+            await self.update_players()
         else:
             await interaction.response.send_message('You are already in the Battle Royale.', ephemeral=True, delete_after=5)
 
@@ -94,6 +96,7 @@ class BattleRoyaleLobbyView(ui.View):
         if interaction.user.id in self.players:
             self.players.pop(interaction.user.id)
             await interaction.response.send_message('You have left the Battle Royale.', ephemeral=True, delete_after=5)
+            await self.update_players()
         else:
             await interaction.response.send_message('You are not in the Battle Royale.', ephemeral=True, delete_after=5)
 
