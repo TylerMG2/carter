@@ -136,9 +136,9 @@ class EmbedMessage(Embed):
         self.channel_id = interaction.channel_id
 
     # Function to update the embeds message
-    async def update(self) -> Message:
+    async def update(self, view: ui.View = None) -> Message:
         message = await self.get_message()
-        return await message.edit(embed=self)
+        return await message.edit(embed=self, view=view)
 
     # Function to delete an embed
     async def delete(self) -> None:
