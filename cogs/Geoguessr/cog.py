@@ -2,6 +2,7 @@ from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
 from .data import COUNTRIES
+from .user_interfaces.battle_royale_view import BattleRoyaleMenuView
 import asyncio
 import typing
 import random
@@ -105,6 +106,13 @@ class Geoguessr(commands.Cog):
                 self.challenges.pop(interaction.channel_id)
         else:
             await interaction.response.send_message(f'{random.choice(INCORRECT_MESSAGES)}', ephemeral=True, delete_after=5)
+
+    # Battle royale create command
+    @app_commands.command(name='battleroyale', description='Create a new geoguessr battle royale lobby')
+    async def battle_royale(self, interaction: Interaction, timer: int = 0):
+        await interaction.response.send_message("Your battle royale", view=BattleRoyaleMenuView())
+
+        
 
 
 # Setup the Geoguessr cog
