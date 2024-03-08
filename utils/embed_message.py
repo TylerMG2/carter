@@ -1,6 +1,7 @@
-from discord import Interaction, Embed, Message, User, WebhookMessage
+from discord import Interaction, Embed, Message, User, WebhookMessage, ui
 from discord.ext import commands
-from discord import ui
+from discord.abc import GuildChannel
+from discord import Webhook
 
 # This class is used to manage the creation, editing and deletion of embeds
 #TODO: Add some errors for when the message_id or channel_id is not set
@@ -107,14 +108,30 @@ class EmbedMessage(Embed):
         channel = self.bot.get_channel(channel_id)
         if channel is None:
             raise ValueError("Channel not found")
-        message = await channel.send(embed=self, view=view)
+        message : Message = await channel.send(embed=self, view=view)
         self.message_id = message.id
         self.channel_id = channel_id
         return message
     
     # Function to respond to an interaction with an embed
-    async def respond(self, interaction: Interaction, view: ui.View = None) -> None:
-        message : WebhookMessage = await interaction.followup.send(embed=self, view=view)
+    async def respond(self, interaction: Interaction, view: ui.View = None, ephmeral: bool = False) -> None:
+        """
+        Respond to an interaction with an embed message
+
+        Parameters
+        ----------
+        interaction : Interaction
+            the interaction to respond to, must be deferred
+        view : ui.View
+            the view to attach to the message
+        ephmeral : bool
+            whether the message should be ephmeral or not
+        """
+        message : WebhookMessage = None
+        if view is None:
+            message = await interaction.followup.send(embed=self, ephemeral=ephmeral)
+        else:
+            message = await interaction.followup.send(embed=self, view=view, ephemeral=ephmeral)
         self.message_id = message.id
         self.channel_id = interaction.channel_id
 
