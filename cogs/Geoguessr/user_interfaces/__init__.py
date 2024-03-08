@@ -1,1 +1,1 @@
-from .battle_royale_settings_view import BattleRoyaleSettingsView
+from .battle_royale_views import BattleRoyaleSettingsView, BattleRoyaleLobbyView
