@@ -4,7 +4,7 @@ from .panorama import Panorama
 from utils.embed_message import EmbedMessage
 import time
 import random
-from .data import COUNTRIES, PANORAMAS
+from .data import COUNTRIES, get_random_pano
 
 # Strings
 CHALLENGE_IN_PROGRESS_COLOR = 0x0000ff
@@ -41,16 +41,10 @@ class Challenge:
         self.guesses = set()
         self.pano : Panorama = None
         self.ended = False
-
-    # Function to pick a random country and panorama
-    def pick_random_pano(self) -> Panorama:
-        country_iso2 = random.choice(list(COUNTRIES.keys()))
-        pano_info = PANORAMAS[PANORAMAS['country'] == country_iso2].sample().iloc[0]
-        return Panorama(pano_info['pano_id'], pano_info['lat'], pano_info['long'], pano_info['date'], COUNTRIES[country_iso2], country_iso2)
         
     # Start the challenge
     async def start(self, timeout: int = 0) -> Message:
-        self.pano = self.pick_random_pano()
+        self.pano = get_random_pano()
 
         # Create timer string
         timer = ""

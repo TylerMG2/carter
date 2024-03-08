@@ -74,13 +74,26 @@ class Geoguessr(commands.Cog):
     async def guess(self, interaction: Interaction, country: str):
 
         # Check if the challenge exists
-        if interaction.channel_id not in self.challenges:
+        if interaction.channel_id not in self.challenges and interaction.channel_id not in self.battle_royales:
             await interaction.response.send_message('No active challenge exists in this channel, start one with /challenge', ephemeral=True, delete_after=5)
+            return
+        
+        # If there is a battle royale, add the guess to the battle royale
+        if interaction.channel_id in self.battle_royales:
+            battle_royale = self.battle_royales[interaction.channel_id]
+            try:
+                await battle_royale.player_guess(interaction, country)
+            except ValueError as e:
+                await interaction.response.send_message(str(e), ephemeral=True, delete_after=5)
             return
         
         # Add the guess to the challenge
         challenge = self.challenges[interaction.channel_id]
-        correct = await challenge.add_guess(interaction, country)
+        try:
+            correct = await challenge.add_guess(interaction, country)
+        except ValueError as e:
+            await interaction.response.send_message(str(e), ephemeral=True, delete_after=5)
+            return
 
         # If the result is true, remove the challenge
         if correct:
