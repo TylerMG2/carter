@@ -1,5 +1,6 @@
 from discord import Interaction, Embed, Message, User, WebhookMessage
 from discord.ext import commands
+from discord import ui
 
 # This class is used to manage the creation, editing and deletion of embeds
 #TODO: Add some errors for when the message_id or channel_id is not set
@@ -102,18 +103,18 @@ class EmbedMessage(Embed):
         return self
     
     # Function to send an embed
-    async def send(self, channel_id: int) -> Message:
+    async def send(self, channel_id: int, view: ui.View = None) -> Message:
         channel = self.bot.get_channel(channel_id)
         if channel is None:
             raise ValueError("Channel not found")
-        message = await channel.send(embed=self)
+        message = await channel.send(embed=self, view=view)
         self.message_id = message.id
         self.channel_id = channel_id
         return message
     
     # Function to respond to an interaction with an embed
-    async def respond(self, interaction: Interaction) -> None:
-        message : WebhookMessage = await interaction.followup.send(embed=self)
+    async def respond(self, interaction: Interaction, view: ui.View = None) -> None:
+        message : WebhookMessage = await interaction.followup.send(embed=self, view=view)
         self.message_id = message.id
         self.channel_id = interaction.channel_id
 

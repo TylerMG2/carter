@@ -20,4 +20,6 @@ class BattleRoyale:
     
     # Create the battle royale
     async def create(self, interaction: Interaction):
-        await interaction.response.send_message('Creating battle royale...')
+        self.embed_message.update_embed(description='Test', color=0x0000ff)
+        self.embed_message.set_author(name=f"{interaction.user.display_name}'s Battle Royale", icon_url=interaction.user.display_avatar.url)
+        await self.embed_message.respond(interaction)
