@@ -143,7 +143,13 @@ class EmbedMessage(Embed):
         self.channel_id = interaction.channel_id
 
     # Function to update the embeds message
-    async def update(self) -> Message:
+    async def update(self, now: bool = False) -> Message:
+
+        # For updating now
+        if now:
+            if self.update_task and not self.update_task.done():
+                self.update_task.cancel()
+            return await self._update(buffer_time=0.0)
 
         # If a task is set
         if self.update_task and not self.update_task.done():
@@ -153,8 +159,8 @@ class EmbedMessage(Embed):
         return await self.update_task
     
     # Internal function to update message
-    async def _update(self) -> None:
-        await asyncio.sleep(0.5)
+    async def _update(self, buffer_time: float = 0.5) -> None:
+        await asyncio.sleep(buffer_time)
         message = await self.get_message()
         return await message.edit(embed=self, view=self.view)
 

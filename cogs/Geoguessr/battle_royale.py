@@ -119,21 +119,21 @@ class BattleRoyale:
 
         # Loading state
         self.state = GameState.BETWEEN_ROUNDS
-        future_time = int(time.time() + 5.5)
+        future_time = int(time.time() + 5)
         self.embed_message.update_embed(description=f'## Loading next round <t:{future_time}:R>', color=0xffff00)
         self.embed_message.set_view(None)
-        await self.embed_message.update()
+        await self.embed_message.update(now=True)
         await asyncio.sleep(5)
 
         # Get the panorama
         self.state = GameState.ROUND
-        future_time = int(time.time() + self.settings_view.round_time + 0.5) # Add 0.5 to account for delay
+        future_time = int(time.time() + self.settings_view.round_time) # Add 0.5 to account for delay
         self.pano = get_random_pano()
         self.embed_message.update_embed(description=ROUND_DESCRIPTION.format(self.round, future_time), color=0x0000ff)
         self.embed_message.add_field(name='Guesses', value=self._generate_guesses_string(), inline=False)
         self.embed_message.set_image(url=self.pano.get_image_url())
-        await self.embed_message.update()
-        await asyncio.sleep(self.settings_view.round_time + 0.5)
+        await self.embed_message.update(now=True)
+        await asyncio.sleep(self.settings_view.round_time)
 
         if len(self.qualified) == 0:
             self.qualified = list(self.players.keys())
