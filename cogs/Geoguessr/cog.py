@@ -3,10 +3,8 @@ from discord import app_commands, Interaction
 from .challenge import Challenge
 from .battle_royale import BattleRoyale
 from .data import COUNTRIES
-from .user_interfaces import BattleRoyaleSettingsView
 import asyncio
 import typing
-import random
 
 MAX_TIME_LIMIT = 600 # 10 minutes
 
@@ -109,9 +107,6 @@ class Geoguessr(commands.Cog):
         battle_royale = BattleRoyale(self.bot)
         self.battle_royales[interaction.channel_id] = battle_royale
         await battle_royale.start_setup(interaction)
-
-        
-
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):

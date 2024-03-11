@@ -15,16 +15,6 @@ def battle_royale():
     bot = AsyncMock(spec=commands.Bot)
     return BattleRoyale(bot)
 
-# # Test constructor method
-# def test_constructor():
-#     bot = AsyncMock(spec=commands.Bot)
-#     battle_royale = BattleRoyale(bot, HOST_ID, GUESSES, TIME_LIMIT, LOCKIN_TIME)
-#     assert battle_royale.bot is not None
-#     assert battle_royale.host_id == HOST_ID
-#     assert battle_royale.guesses == GUESSES
-#     assert battle_royale.time_limit == TIME_LIMIT
-#     assert battle_royale.lockin_time == LOCKIN_TIME
-
 # # Test with invalid values
 # @pytest.mark.parametrize('host_id, guesses, time_limit, lockin_time, message', [
 #     ('', GUESSES, TIME_LIMIT, LOCKIN_TIME, "Invalid host ID"),

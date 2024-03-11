@@ -59,7 +59,13 @@ class BattleRoyale:
         for player_id in self.guesses:
             emojis = []
             for guess in self.guesses[player_id]:
-                emojis.append(f":flag_{guess}:")
+                
+                # If the guess is correct, add a green checkmark
+                if guess == self.pano.iso2.lower() or guess == self.pano.country.lower():
+                    emojis.append(":white_check_mark:")
+                else:
+                    emojis.append(f":flag_{guess}:")
+
             for i in range(len(emojis), self.settings_view.lives):
                 emojis.append(":black_small_square:")
             guesses_string += f"<@{player_id}> {' '.join(emojis)}\n"
@@ -84,8 +90,8 @@ class BattleRoyale:
         self.embed_message.add_field(name='Players', value=self._generate_players_string(), inline=False)
         self.embed_message.add_field(name='Round Time', value=f'{self.settings_view.round_time} seconds', inline=True)
         self.embed_message.add_field(name='Lockin Time', value=f'{self.settings_view.lockin_time} seconds', inline=True)
-        self.embed_message.add_field(name='Powerups', value=', '.join(self.settings_view.powerups), inline=True)
-        self.embed_message.add_field(name='Lives', value=self.settings_view.lives, inline=False)
+        self.embed_message.add_field(name='Powerups', value=', '.join(self.settings_view.powerups), inline=False)
+        self.embed_message.add_field(name='Lives', value=self.settings_view.lives, inline=True)
         
         # Update the embed message
         if interaction:
@@ -133,6 +139,7 @@ class BattleRoyale:
         self.embed_message.add_field(name='Guesses', value=self._generate_guesses_string(), inline=False)
         self.embed_message.set_image(url=self.pano.get_image_url())
         await self.embed_message.update(now=True)
+        print(self.pano.iso2)
         await asyncio.sleep(self.settings_view.round_time)
 
         if len(self.qualified) == 0:
@@ -149,7 +156,7 @@ class BattleRoyale:
         if (guess.upper() not in COUNTRIES.keys()) and (guess not in COUNTRIES.values()):
             raise ValueError(f"Invalid country guess: {guess}")
 
-        # Validate guess
+        # Check if we can guess
         if self.state != GameState.ROUND:
             await interaction.response.send_message('The game hasn\'t started yet', ephemeral=True, delete_after=5)
             return
@@ -159,10 +166,15 @@ class BattleRoyale:
         if len(self.guesses[interaction.user.id]) >= self.settings_view.lives:
             await interaction.response.send_message('You are out of guesses', ephemeral=True, delete_after=5)
             return
+        if interaction.user.id in self.qualified:
+            await interaction.response.send_message('You have already qualified for the next round', ephemeral=True, delete_after=5)
+            return
         
+        # Check if the guess is correct
         self.guesses[interaction.user.id].append(guess)
         if guess == self.pano.iso2.lower() or guess == self.pano.country.lower():
             await interaction.response.send_message('Correct guess', ephemeral=True, delete_after=5)
+            self.qualified.append(interaction.user.id)
         else:
             await interaction.response.send_message('Incorrect guess', ephemeral=True, delete_after=5)
         self.embed_message.set_field_at(0, name='Guesses', value=self._generate_guesses_string(), inline=False)
