@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord import Interaction
 from .user_interfaces import BattleRoyaleSettingsView, BattleRoyaleLobbyView
-from utils.embed_message import EmbedMessage
+from utils import EmbedMessage
 import time
 import asyncio
 import enum
@@ -21,10 +21,10 @@ class GameState(enum.Enum):
 class BattleRoyale:
 
     # Constructor
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-        self.embed_message = EmbedMessage(bot)
+    def __init__(self, embed_message: EmbedMessage, thread_id: int):
+        self.embed_message = embed_message
         self.settings_view = BattleRoyaleSettingsView()
+        self.thread_id = thread_id
         self.players : dict[int, int] = {}
         self.host_id : int = None
         self.num_spots : int = 0
@@ -40,8 +40,13 @@ class BattleRoyale:
         await interaction.response.send_message('# Battle Royale Setup', view=self.settings_view, ephemeral=True)
         await self.settings_view.wait()
         await interaction.delete_original_response()
+
+        # Build lobby
         if self.settings_view.started:
-            await self.create(interaction)
+            self.host_id = interaction.user.id
+            self.players[self.host_id] = 0
+            self.embed_message.set_author(name=f"{interaction.user.display_name}'s Battle Royale", icon_url=interaction.user.display_avatar.url)
+            await self.set_lobby()
 
     # Function to generate players string
     def _generate_players_string(self) -> str:
@@ -70,23 +75,14 @@ class BattleRoyale:
                 emojis.append(":black_small_square:")
             guesses_string += f"<@{player_id}> {' '.join(emojis)}\n"
         return guesses_string
-    
-    # Create the battle royale
-    async def create(self, interaction: Interaction):
-
-        # Set details
-        self.host_id = interaction.user.id
-        self.players[self.host_id] = 0
-        self.embed_message.set_author(name=f"{interaction.user.display_name}'s Battle Royale", icon_url=interaction.user.display_avatar.url)
-        await self.set_lobby(interaction)
 
     # Function that sets the state to lobby
-    async def set_lobby(self, interaction: Interaction = None):
+    async def set_lobby(self, interaction: Interaction):
         self.state = GameState.LOBBY
 
         # Send the lobby embed
-        lobby_view = BattleRoyaleLobbyView(self.players, self.host_id, self.update_players)
-        self.embed_message.update_embed(description='# Test', color=0x0000ff)
+        lobby_view = BattleRoyaleLobbyView(self.host_id)
+        self.embed_message.update_embed(description=f'# Test\nJoin <#{self.thread_id}>', color=0x0000ff)
         self.embed_message.add_field(name='Players', value=self._generate_players_string(), inline=False)
         self.embed_message.add_field(name='Round Time', value=f'{self.settings_view.round_time} seconds', inline=True)
         self.embed_message.add_field(name='Lockin Time', value=f'{self.settings_view.lockin_time} seconds', inline=True)
@@ -131,9 +127,9 @@ class BattleRoyale:
         await self.embed_message.update(now=True)
         await asyncio.sleep(5)
 
-        # Get the panorama
+        # Build challenge embed
         self.state = GameState.ROUND
-        future_time = int(time.time() + self.settings_view.round_time) # Add 0.5 to account for delay
+        future_time = int(time.time() + self.settings_view.round_time)
         self.pano = get_random_pano()
         self.embed_message.update_embed(description=ROUND_DESCRIPTION.format(self.round, future_time), color=0x0000ff)
         self.embed_message.add_field(name='Guesses', value=self._generate_guesses_string(), inline=False)

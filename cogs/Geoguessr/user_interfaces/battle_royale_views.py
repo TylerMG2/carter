@@ -74,11 +74,9 @@ class BattleRoyaleSettingsView(ui.View):
 # Lobby view
 class BattleRoyaleLobbyView(ui.View):
 
-    def __init__(self, players: dict[int, int], host_id: int, update_players: callable):
+    def __init__(self, host_id: int):
         super().__init__()
-        self.players = players
         self.host_id = host_id
-        self.update_players = update_players
 
     @ui.button(label='Settings', emoji='⚙️', style=ButtonStyle.grey, row=0)
     async def settings_button(self, interaction: Interaction, button: ui.Button):
@@ -95,23 +93,3 @@ class BattleRoyaleLobbyView(ui.View):
             self.stop()
         else:
             await interaction.response.send_message('Only the host can start the game.', ephemeral=True, delete_after=5)
-
-    # Join button
-    @ui.button(label='Join', emoji='✅', style=ButtonStyle.green, row=1)
-    async def join_button(self, interaction: Interaction, button: ui.Button):
-        if interaction.user.id not in self.players:
-            self.players[interaction.user.id] = 0
-            await interaction.response.send_message('You have joined the Battle Royale.', ephemeral=True, delete_after=5)
-            await self.update_players()
-        else:
-            await interaction.response.send_message('You are already in the Battle Royale.', ephemeral=True, delete_after=5)
-
-    # Leave button
-    @ui.button(label='Leave', emoji='🚪', style=ButtonStyle.red, row=1)
-    async def leave_button(self, interaction: Interaction, button: ui.Button):
-        if interaction.user.id in self.players:
-            self.players.pop(interaction.user.id)
-            await interaction.response.send_message('You have left the Battle Royale.', ephemeral=True, delete_after=5)
-            await self.update_players()
-        else:
-            await interaction.response.send_message('You are not in the Battle Royale.', ephemeral=True, delete_after=5)

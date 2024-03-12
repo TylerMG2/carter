@@ -2,6 +2,7 @@ from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
 from .battle_royale import BattleRoyale
+from utils.embed_message import EmbedMessage
 from .data import COUNTRIES
 import asyncio
 import typing
@@ -104,9 +105,12 @@ class Geoguessr(commands.Cog):
         # TODO: Handle battle royale already in progress
 
         # Create new battle royale
-        battle_royale = BattleRoyale(self.bot)
+        thread = await interaction.channel.create_thread(name=f"{interaction.user.display_name}'s Battle Royale", auto_archive_duration=1440)
+        print(EmbedMessage(self.bot), thread.id)
+        battle_royale = BattleRoyale(EmbedMessage(self.bot), thread.id)
         self.battle_royales[interaction.channel_id] = battle_royale
-        await battle_royale.start_setup(interaction)
+        await interaction.response.defer()
+        await battle_royale.set_lobby(interaction)
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):
