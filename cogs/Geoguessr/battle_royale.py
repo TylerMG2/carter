@@ -21,10 +21,9 @@ class GameState(enum.Enum):
 class BattleRoyale:
 
     # Constructor
-    def __init__(self, embed_message: EmbedMessage, thread_id: int):
+    def __init__(self, embed_message: EmbedMessage):
         self.embed_message = embed_message
         self.settings_view = BattleRoyaleSettingsView()
-        self.thread_id = thread_id
         self.players : dict[int, int] = {}
         self.host_id : int = None
         self.num_spots : int = 0
@@ -81,12 +80,12 @@ class BattleRoyale:
         self.state = GameState.LOBBY
 
         # Send the lobby embed
-        lobby_view = BattleRoyaleLobbyView(self.host_id)
-        self.embed_message.update_embed(description=f'# Test\nJoin <#{self.thread_id}>', color=0x0000ff)
+        
+        self.embed_message.update_embed(description=f'# Test', color=0x0000ff)
         self.embed_message.add_field(name='Players', value=self._generate_players_string(), inline=False)
         self.embed_message.add_field(name='Round Time', value=f'{self.settings_view.round_time} seconds', inline=True)
         self.embed_message.add_field(name='Lockin Time', value=f'{self.settings_view.lockin_time} seconds', inline=True)
-        self.embed_message.add_field(name='Powerups', value=', '.join(self.settings_view.powerups), inline=False)
+        self.embed_message.add_field(name='Powerups', value=', '.join(self.settings_view.powerups), inline=True)
         self.embed_message.add_field(name='Lives', value=self.settings_view.lives, inline=True)
         
         # Update the embed message

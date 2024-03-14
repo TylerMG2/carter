@@ -105,12 +105,16 @@ class Geoguessr(commands.Cog):
         # TODO: Handle battle royale already in progress
 
         # Create new battle royale
-        thread = await interaction.channel.create_thread(name=f"{interaction.user.display_name}'s Battle Royale", auto_archive_duration=1440)
-        print(EmbedMessage(self.bot), thread.id)
-        battle_royale = BattleRoyale(EmbedMessage(self.bot), thread.id)
+        lobby_message = EmbedMessage(self.bot)
+
+        battle_royale = BattleRoyale(lobby_message)
         self.battle_royales[interaction.channel_id] = battle_royale
         await interaction.response.defer()
         await battle_royale.set_lobby(interaction)
+
+        # Create thread
+        message = await lobby_message.get_message()
+        await message.create_thread(name='Geoguessr Battle Royale', auto_archive_duration=1440)
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):
