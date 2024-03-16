@@ -49,8 +49,10 @@ class LobbyManager:
         self.host_id : int = -1
         self.players : dict[int, LobbyPlayer] = {}
         self.state = LobbyState.LOBBY
+        self.view : LobbyView = None
 
-    async def create_lobby(self, interaction: Interaction, lobby_suffix="Lobby", thread=False, view: LobbyView = None) -> EmbedMessage:
+    # TODO: Add settings
+    async def create_lobby(self, interaction: Interaction, lobby_suffix="Lobby", thread=False, view: LobbyView = None) -> None:
         host = interaction.user
         self.host_id = host.id
 
@@ -59,15 +61,20 @@ class LobbyManager:
 
         # Building lobby response (embed and thread)
         self.embed_message.update_embed(title="Building Lobby...", description="This should only be a couple seconds", color=0xffff00)
-        await self.embed_message.respond_to(interaction, view=view)
+        await self.embed_message.respond_to(interaction)
         lobby_desc = LOBBY_DESCRIPTION.format(host.mention)
         if thread:
             new_thread = await self.create_thread(f"{host.name}'s {lobby_suffix}")
             lobby_desc += f"\nJoin {new_thread.mention} to participate."
 
+        # Build view if not provided
+        if view is None:
+            view = LobbyView(host.id)
+
         # Lobby embed
         await async_sleep(3)
         self.embed_message.update_embed(description=lobby_desc, color=0x0000ff)
+        self.embed_message.set_view(view)
         self.embed_message.set_author(name=f"{host.name}'s {lobby_suffix}", icon_url=host.avatar.url)
         await self.embed_message.update()
     
@@ -88,5 +95,26 @@ class LobbyManager:
     async def update_state(self, state: LobbyState) -> None:
         self.state = state
         await self.embed_message.update()
+
+    # Function to wait for the lobby to start
+    async def wait_for_start(self, view: ui.View) -> None:
+        result = await view.wait()
+
+        # If the view times out, close the lobby
+        if result:
+            message = await self.embed_message.get_message()
+            await message.edit(content="Lobby Closed", view=None)
+            thread = await self.get_thread()
+            await thread.delete()
+            return
+        
+        # Start the game
+        await self.start_game()
+
+    # Function to start the game (Override)
+    async def start_game(self) -> None:
+        pass
+
+        
 
             

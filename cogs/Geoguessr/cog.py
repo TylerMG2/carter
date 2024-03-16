@@ -105,15 +105,9 @@ class Geoguessr(commands.Cog):
         # TODO: Handle battle royale already in progress
 
         # Create new battle royale
-        # lobby_message = EmbedMessage(self.bot)
-        # battle_royale = BattleRoyaleLobby(lobby_message)
-        # self.battle_royales[interaction.channel_id] = battle_royale
-        # await interaction.response.defer()
-        # await battle_royale.create(interaction)
         await interaction.response.defer()
         lobby = LobbyManager(self.bot)
-        settings_view = LobbyView(interaction.user.id)
-        await lobby.create_lobby(interaction, lobby_suffix="Battle Royale", thread=True, view=settings_view)
+        await lobby.create_lobby(interaction, lobby_suffix="Battle Royale", thread=True)
 
 
 
