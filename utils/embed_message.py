@@ -1,4 +1,4 @@
-from discord import Interaction, Embed, Message, User, WebhookMessage, ui
+from discord import Interaction, Embed, Message, User, WebhookMessage, ui, TextChannel
 from discord.ext import commands
 import asyncio
 
@@ -41,7 +41,7 @@ class EmbedMessage(Embed):
         Deletes the embed message
     
     """
-    FOOTER_TEXT = "Bot by @tmg1"
+    FOOTER_TEXT = "| Bot by @tmg1"
 
     # Constructor
     def __init__(self, bot: commands.Bot):
@@ -117,6 +117,14 @@ class EmbedMessage(Embed):
         message : Message = await channel.send(embed=self, view=self.view)
         self.message_id = message.id
         self.channel_id = channel_id
+        return message
+
+    # Function to send to a channel
+    async def send_to(self, channel: TextChannel, view: ui.View = None) -> Message:
+        self.view = view
+        message = await channel.send(embed=self, view=self.view)
+        self.message_id = message.id
+        self.channel_id = channel.id
         return message
     
     # Function to respond to an interaction with an embed

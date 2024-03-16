@@ -4,7 +4,8 @@ from .embed_message import EmbedMessage
 from asyncio import sleep as async_sleep
 import enum
 
-LOBBY_DESCRIPTION = "## Lobby\n ### Waiting for {0:} to start."
+LOBBY_DESCRIPTION = "## Lobby\n"
+IN_PROGRESS_DESCRIPTION = "## Game In Progress\nYou can still join <#{0:}> to spectate."
 
 class LobbyPlayer:
 
@@ -111,10 +112,9 @@ class LobbyManager:
 
     # Update the lobby messsage
     async def set_lobby(self) -> None:
-        lobby_desc = LOBBY_DESCRIPTION.format(f"<@{self.host_id}>")
-        thread = await self.get_thread()
-        if thread:
-            lobby_desc += f"\nJoin {thread.mention} to participate."
+        lobby_desc = LOBBY_DESCRIPTION
+        if self.thread_id != -1:
+            lobby_desc += f"\nJoin <#{self.thread_id}> to participate."
 
         view = self.view.clone() # Make a copy to ensure a fresh view
 
@@ -141,6 +141,9 @@ class LobbyManager:
             return
         
         # Start the game
+        self.embed_message.update_embed(description=IN_PROGRESS_DESCRIPTION.format(self.thread_id), color=0xffff00)
+        self.embed_message.set_view(None)
+        await self.embed_message.update()
         await self.start_game()
 
     # Function to start the game (Override)

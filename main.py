@@ -21,7 +21,7 @@ async def on_ready():
     print(f'Logged in as {bot.user}')
 
     # Set status
-    await bot.change_presence(activity=discord.Game(name="/challenge"))
+    await bot.change_presence(activity=discord.Game(name="/battleroyale"))
 
     # Load cogs
     for folder in os.listdir('./cogs'):

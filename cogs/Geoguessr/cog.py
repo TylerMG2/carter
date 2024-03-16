@@ -2,7 +2,6 @@ from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
 from .battle_royale import BattleRoyaleLobby
-from utils import EmbedMessage, LobbyView, LobbyManager
 from .data import COUNTRIES
 import asyncio
 import typing
@@ -106,7 +105,7 @@ class Geoguessr(commands.Cog):
 
         # Create new battle royale
         await interaction.response.defer()
-        lobby = LobbyManager(self.bot)
+        lobby = BattleRoyaleLobby(self.bot)
         await lobby.create_lobby(interaction, lobby_suffix="Battle Royale", thread=True)
 
 
