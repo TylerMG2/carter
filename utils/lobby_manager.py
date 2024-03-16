@@ -24,6 +24,7 @@ class LobbyView(ui.View):
     def __init__(self, host_id: int):
         super().__init__()
         self.host_id = host_id
+        self.started = False
 
     @ui.button(label='Settings', emoji='⚙️', style=ButtonStyle.grey, row=0)
     async def settings_button(self, interaction: Interaction, button: ui.Button):
@@ -32,14 +33,28 @@ class LobbyView(ui.View):
         else:
             await interaction.response.send_message('Only the host can change the settings.', ephemeral=True, delete_after=5)
         
+    # Close Button
+    @ui.button(label='Close', emoji='🗑️', style=ButtonStyle.red, row=0)
+    async def close_button(self, interaction: Interaction, button: ui.Button):
+        if interaction.user.id == self.host_id:
+            await interaction.response.defer()
+            self.stop()
+        else:
+            await interaction.response.send_message('Only the host can delete the game.', ephemeral=True, delete_after=5)
+
     # Start button
     @ui.button(label='Start', emoji='➡️', style=ButtonStyle.blurple, row=0)
     async def start_button(self, interaction: Interaction, button: ui.Button):
         if interaction.user.id == self.host_id:
             await interaction.response.defer()
+            self.started = True
             self.stop()
         else:
             await interaction.response.send_message('Only the host can start the game.', ephemeral=True, delete_after=5)
+    
+    # Method for cloning this view (Overwrite this for new views)
+    def clone(self):
+        return self.__class__(self.host_id)
 
 class LobbyManager:
 
@@ -62,21 +77,19 @@ class LobbyManager:
         # Building lobby response (embed and thread)
         self.embed_message.update_embed(title="Building Lobby...", description="This should only be a couple seconds", color=0xffff00)
         await self.embed_message.respond_to(interaction)
-        lobby_desc = LOBBY_DESCRIPTION.format(host.mention)
         if thread:
-            new_thread = await self.create_thread(f"{host.name}'s {lobby_suffix}")
-            lobby_desc += f"\nJoin {new_thread.mention} to participate."
+            await self.create_thread(f"{host.name}'s {lobby_suffix}")
 
-        # Build view if not provided
-        if view is None:
-            view = LobbyView(host.id)
+        # If a view is given, use it
+        if view:
+            self.view = view
+        else:
+            self.view = LobbyView(host.id)
 
         # Lobby embed
         await async_sleep(3)
-        self.embed_message.update_embed(description=lobby_desc, color=0x0000ff)
-        self.embed_message.set_view(view)
         self.embed_message.set_author(name=f"{host.name}'s {lobby_suffix}", icon_url=host.avatar.url)
-        await self.embed_message.update()
+        await self.set_lobby()
     
     # Creates thead with given name
     async def create_thread(self, name: str) -> Thread:
@@ -96,16 +109,35 @@ class LobbyManager:
         self.state = state
         await self.embed_message.update()
 
-    # Function to wait for the lobby to start
-    async def wait_for_start(self, view: ui.View) -> None:
-        result = await view.wait()
+    # Update the lobby messsage
+    async def set_lobby(self) -> None:
+        lobby_desc = LOBBY_DESCRIPTION.format(f"<@{self.host_id}>")
+        thread = await self.get_thread()
+        if thread:
+            lobby_desc += f"\nJoin {thread.mention} to participate."
 
-        # If the view times out, close the lobby
-        if result:
-            message = await self.embed_message.get_message()
-            await message.edit(content="Lobby Closed", view=None)
+        view = self.view.clone() # Make a copy to ensure a fresh view
+
+        # Set embed
+        self.embed_message.update_embed(description=lobby_desc, color=0x0000ff)
+        self.embed_message.set_view(view)
+        await self.embed_message.update()
+
+        # Wait for the host to start the game
+        await self.wait_for_start(view)
+
+    # Function to wait for the lobby to start
+    async def wait_for_start(self, view: LobbyView) -> None:
+        await view.wait()
+
+        # If the view is stopped (or timeout), close the lobby
+        if not view.started:
+            self.embed_message.update_embed(title="Lobby Closed", color=0xff0000)
+            self.embed_message.remove_author()
+            self.embed_message.set_view(None)
             thread = await self.get_thread()
             await thread.delete()
+            await self.embed_message.update()
             return
         
         # Start the game
