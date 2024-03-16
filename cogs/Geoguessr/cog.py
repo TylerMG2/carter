@@ -1,34 +1,19 @@
 from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
+from .battleroyale import BattleRoyaleLobby
 from .data import COUNTRIES
 import asyncio
 import typing
-import random
 
 MAX_TIME_LIMIT = 600 # 10 minutes
-
-INCORRECT_MESSAGES = [
-    "Incorrect.",
-    "Nope.",
-    "Try again.",
-    "Not quite.",
-    "Wrong.",
-    "Nearly (This means absolutely nothing)"
-]
-
-CORRECT_MESSAGES = [
-    "Correct!",
-    "Nice one!",
-    "You got it!",
-    "Well done!",
-]
 
 # Geoguessr cog for commands associated with the geoguessr game
 class Geoguessr(commands.Cog):
 
     # Challenges list
     challenges : dict[int, Challenge] = {}
+    battle_royales : dict[int, BattleRoyaleLobby] = {}
 
     # Constructor
     def __init__(self, bot: commands.Bot):
@@ -87,27 +72,44 @@ class Geoguessr(commands.Cog):
     async def guess(self, interaction: Interaction, country: str):
 
         # Check if the challenge exists
-        if interaction.channel_id not in self.challenges:
+        if interaction.channel_id not in self.challenges and interaction.channel_id not in self.battle_royales:
             await interaction.response.send_message('No active challenge exists in this channel, start one with /challenge', ephemeral=True, delete_after=5)
+            return
+        
+        # If there is a battle royale, add the guess to the battle royale
+        if interaction.channel_id in self.battle_royales:
+            battle_royale = self.battle_royales[interaction.channel_id]
+            try:
+                await battle_royale.add_guess(interaction, country)
+            except ValueError as e:
+                await interaction.response.send_message(str(e), ephemeral=True, delete_after=5)
             return
         
         # Add the guess to the challenge
         challenge = self.challenges[interaction.channel_id]
-        correct = await challenge.add_guess(country)
+        try:
+            correct = await challenge.add_guess(interaction, country)
+        except ValueError as e:
+            await interaction.response.send_message(str(e), ephemeral=True, delete_after=5)
+            return
 
-        # If the result is true, end the challenge
+        # If the result is true, remove the challenge
         if correct:
-            await interaction.response.send_message(f'{random.choice(CORRECT_MESSAGES)}', ephemeral=True, delete_after=5)
+            self.challenges.pop(interaction.channel_id)
 
-            # End the challenge
-            await challenge.end(winner=interaction.user)
-            if interaction.channel_id in self.challenges:
-                self.challenges.pop(interaction.channel_id)
-        else:
-            await interaction.response.send_message(f'{random.choice(INCORRECT_MESSAGES)}', ephemeral=True, delete_after=5)
+    # Battle royale create command
+    @app_commands.command(name='battleroyale', description='Create a new geoguessr battle royale lobby')
+    async def battle_royale(self, interaction: Interaction):
+        
+        # TODO: Handle battle royale already in progress
 
+        # Create new battle royale
+        await interaction.response.defer()
+        lobby = BattleRoyaleLobby(self.bot)
+        await lobby.create_lobby(interaction, lobby_suffix="Battle Royale", thread=True)
+        self.battle_royales[lobby.thread_id] = lobby
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):
     await bot.add_cog(Geoguessr(bot))
-    print('Geoguessr cog loaded')
+    print('Geoguessr Cog loaded')
