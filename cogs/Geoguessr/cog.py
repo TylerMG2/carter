@@ -80,7 +80,7 @@ class Geoguessr(commands.Cog):
         if interaction.channel_id in self.battle_royales:
             battle_royale = self.battle_royales[interaction.channel_id]
             try:
-                await battle_royale.player_guess(interaction, country)
+                await battle_royale.add_guess(interaction, country)
             except ValueError as e:
                 await interaction.response.send_message(str(e), ephemeral=True, delete_after=5)
             return
@@ -107,9 +107,7 @@ class Geoguessr(commands.Cog):
         await interaction.response.defer()
         lobby = BattleRoyaleLobby(self.bot)
         await lobby.create_lobby(interaction, lobby_suffix="Battle Royale", thread=True)
-
-
-
+        self.battle_royales[lobby.thread_id] = lobby
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):

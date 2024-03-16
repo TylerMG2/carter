@@ -1,4 +1,4 @@
-from discord import Interaction, Embed, Thread, User, ui, ButtonStyle
+from discord import Interaction, Thread, ui, ButtonStyle
 from discord.ext import commands
 from .embed_message import EmbedMessage
 from asyncio import sleep as async_sleep
@@ -123,8 +123,8 @@ class LobbyManager:
         self.embed_message.set_view(view)
         await self.embed_message.update()
 
-        # Wait for the host to start the game
-        await self.wait_for_start(view)
+        # Start a task to wait for the lobby to start
+        self.bot.loop.create_task(self.wait_for_start(view))
 
     # Function to wait for the lobby to start
     async def wait_for_start(self, view: LobbyView) -> None:
