@@ -120,7 +120,7 @@ class EmbedMessage(Embed):
         return message
     
     # Function to respond to an interaction with an embed
-    async def respond(self, interaction: Interaction, view: ui.View = None, ephmeral: bool = False) -> None:
+    async def respond_to(self, interaction: Interaction, view: ui.View = None, ephmeral: bool = False) -> WebhookMessage:
         """
         Respond to an interaction with an embed message
 
@@ -141,6 +141,7 @@ class EmbedMessage(Embed):
             message = await interaction.followup.send(embed=self, view=self.view, ephemeral=ephmeral)
         self.message_id = message.id
         self.channel_id = interaction.channel_id
+        return message
 
     # Function to update the embeds message
     async def update(self, now: bool = False) -> Message:

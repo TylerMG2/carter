@@ -18,7 +18,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'We have logged in as {bot.user}')
+    print(f'Logged in as {bot.user}')
 
     # Set status
     await bot.change_presence(activity=discord.Game(name="/challenge"))

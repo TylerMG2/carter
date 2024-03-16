@@ -1,8 +1,8 @@
 from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
-from .battle_royale import BattleRoyale
-from utils.embed_message import EmbedMessage
+from .battle_royale import BattleRoyaleLobby
+from utils import EmbedMessage, LobbyView, LobbyManager
 from .data import COUNTRIES
 import asyncio
 import typing
@@ -14,7 +14,7 @@ class Geoguessr(commands.Cog):
 
     # Challenges list
     challenges : dict[int, Challenge] = {}
-    battle_royales : dict[int, BattleRoyale] = {}
+    battle_royales : dict[int, BattleRoyaleLobby] = {}
 
     # Constructor
     def __init__(self, bot: commands.Bot):
@@ -105,18 +105,20 @@ class Geoguessr(commands.Cog):
         # TODO: Handle battle royale already in progress
 
         # Create new battle royale
-        lobby_message = EmbedMessage(self.bot)
-
-        battle_royale = BattleRoyale(lobby_message)
-        self.battle_royales[interaction.channel_id] = battle_royale
+        # lobby_message = EmbedMessage(self.bot)
+        # battle_royale = BattleRoyaleLobby(lobby_message)
+        # self.battle_royales[interaction.channel_id] = battle_royale
+        # await interaction.response.defer()
+        # await battle_royale.create(interaction)
         await interaction.response.defer()
-        await battle_royale.set_lobby(interaction)
+        lobby = LobbyManager(self.bot)
+        settings_view = LobbyView(interaction.user.id)
+        await lobby.create_lobby(interaction, lobby_suffix="Battle Royale", thread=True, view=settings_view)
 
-        # Create thread
-        message = await lobby_message.get_message()
-        await message.create_thread(name='Geoguessr Battle Royale', auto_archive_duration=1440)
+
+
 
 # Setup the Geoguessr cog
 async def setup(bot: commands.Bot):
     await bot.add_cog(Geoguessr(bot))
-    print('Geoguessr cog loaded')
+    print('Geoguessr Cog loaded')
