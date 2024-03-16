@@ -56,7 +56,7 @@ class BattleRoyaleRound:
         return guess_str
     
     # Function to start the round
-    async def start(self, channel: Thread | TextChannel):
+    async def start(self, channel: TextChannel):
 
         # Loading round embed
         future_time = int(time.time() + ROUND_LOAD_TIME)
