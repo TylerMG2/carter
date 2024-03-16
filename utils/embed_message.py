@@ -1,5 +1,6 @@
-from discord import Interaction, Embed, Message, User, WebhookMessage
+from discord import Interaction, Embed, Message, User, WebhookMessage, ui, TextChannel
 from discord.ext import commands
+import asyncio
 
 # This class is used to manage the creation, editing and deletion of embeds
 #TODO: Add some errors for when the message_id or channel_id is not set
@@ -40,15 +41,17 @@ class EmbedMessage(Embed):
         Deletes the embed message
     
     """
-    FOOTER_TEXT = "Bot by @tmg1"
+    FOOTER_TEXT = "| Bot by @tmg1"
 
     # Constructor
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
+        self.view : ui.View = None
         self.author_id = None
         self.message_id = None
         self.channel_id = None
+        self.update_task : asyncio.Task = None
 
     # Function to get the embed message
     async def get_message(self) -> Message:
@@ -84,6 +87,10 @@ class EmbedMessage(Embed):
         self.author_id = author.id
         self.set_author(name=author.display_name, icon_url=author.display_avatar.url)
     
+    # Function to update the view
+    def set_view(self, view: ui.View) -> None:
+        self.view = view
+    
     # Function to reset current embed values and set new valies
     def update_embed(self, title: str = None, description: str = None, color: int = 0x00ff00) -> Embed:
 
@@ -102,25 +109,69 @@ class EmbedMessage(Embed):
         return self
     
     # Function to send an embed
-    async def send(self, channel_id: int) -> Message:
+    async def send(self, channel_id: int, view: ui.View = None) -> Message:
         channel = self.bot.get_channel(channel_id)
+        self.view = view
         if channel is None:
             raise ValueError("Channel not found")
-        message = await channel.send(embed=self)
+        message : Message = await channel.send(embed=self, view=self.view)
         self.message_id = message.id
         self.channel_id = channel_id
         return message
+
+    # Function to send to a channel
+    async def send_to(self, channel: TextChannel, view: ui.View = None) -> Message:
+        self.view = view
+        message = await channel.send(embed=self, view=self.view)
+        self.message_id = message.id
+        self.channel_id = channel.id
+        return message
     
     # Function to respond to an interaction with an embed
-    async def respond(self, interaction: Interaction) -> None:
-        message : WebhookMessage = await interaction.followup.send(embed=self)
+    async def respond_to(self, interaction: Interaction, view: ui.View = None, ephmeral: bool = False) -> WebhookMessage:
+        """
+        Respond to an interaction with an embed message
+
+        Parameters
+        ----------
+        interaction : Interaction
+            the interaction to respond to, must be deferred
+        view : ui.View
+            the view to attach to the message
+        ephmeral : bool
+            whether the message should be ephmeral or not
+        """
+        message : WebhookMessage = None
+        self.view = view
+        if self.view is None:
+            message = await interaction.followup.send(embed=self, ephemeral=ephmeral)
+        else:
+            message = await interaction.followup.send(embed=self, view=self.view, ephemeral=ephmeral)
         self.message_id = message.id
         self.channel_id = interaction.channel_id
+        return message
 
     # Function to update the embeds message
-    async def update(self) -> Message:
+    async def update(self, now: bool = False) -> Message:
+
+        # For updating now
+        if now:
+            if self.update_task and not self.update_task.done():
+                self.update_task.cancel()
+            return await self._update(buffer_time=0.0)
+
+        # If a task is set
+        if self.update_task and not self.update_task.done():
+            return
+        
+        self.update_task = asyncio.create_task(self._update())
+        return await self.update_task
+    
+    # Internal function to update message
+    async def _update(self, buffer_time: float = 0.5) -> None:
+        await asyncio.sleep(buffer_time)
         message = await self.get_message()
-        return await message.edit(embed=self)
+        return await message.edit(embed=self, view=self.view)
 
     # Function to delete an embed
     async def delete(self) -> None:
