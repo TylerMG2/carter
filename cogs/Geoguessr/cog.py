@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord import app_commands, Interaction
 from .challenge import Challenge
-from .battle_royale import BattleRoyaleLobby
+from .battleroyale import BattleRoyaleLobby
 from .data import COUNTRIES
 import asyncio
 import typing

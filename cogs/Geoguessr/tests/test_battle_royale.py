@@ -1,7 +1,6 @@
 import pytest
 from discord import Embed
 from discord.ext import commands
-from ..battle_royale import BattleRoyale
 from ..data import COUNTRIES
 from unittest.mock import AsyncMock, MagicMock
 
@@ -10,10 +9,10 @@ GUESSES = 3
 TIME_LIMIT = 120
 LOCKIN_TIME = 15
 
-@pytest.fixture
-def battle_royale():
-    bot = AsyncMock(spec=commands.Bot)
-    return BattleRoyale(bot)
+# @pytest.fixture
+# def battle_royale():
+#     bot = AsyncMock(spec=commands.Bot)
+#     return BattleRoyale(bot)
 
 # # Test with invalid values
 # @pytest.mark.parametrize('host_id, guesses, time_limit, lockin_time, message', [

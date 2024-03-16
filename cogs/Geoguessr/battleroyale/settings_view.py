@@ -71,25 +71,3 @@ class BattleRoyaleSettingsView(ui.View):
         self.started = True
         self.stop()
     
-# Lobby view
-class BattleRoyaleLobbyView(ui.View):
-
-    def __init__(self, host_id: int):
-        super().__init__()
-        self.host_id = host_id
-
-    @ui.button(label='Settings', emoji='⚙️', style=ButtonStyle.grey, row=0)
-    async def settings_button(self, interaction: Interaction, button: ui.Button):
-        if interaction.user.id == self.host_id:
-            await interaction.response.send_message('Settings', ephemeral=True, delete_after=5)
-        else:
-            await interaction.response.send_message('Only the host can change the settings.', ephemeral=True, delete_after=5)
-        
-    # Start button
-    @ui.button(label='Start', emoji='➡️', style=ButtonStyle.blurple, row=0)
-    async def start_button(self, interaction: Interaction, button: ui.Button):
-        if interaction.user.id == self.host_id:
-            await interaction.response.defer()
-            self.stop()
-        else:
-            await interaction.response.send_message('Only the host can start the game.', ephemeral=True, delete_after=5)
