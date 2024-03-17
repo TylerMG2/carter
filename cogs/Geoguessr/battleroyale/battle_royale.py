@@ -54,14 +54,12 @@ class BattleRoyaleLobby(LobbyManager):
         # If we have a winner
         if len(self.next_qualified) == 1:
             await self.current_round.end(winner=self.next_qualified[0])
-            await self.set_lobby()
-            return
+            return await self.set_lobby()
         await self.current_round.end()
 
         # If there were no guesses. End the challenge
         if len(self.current_round.all_guesses) == 0:
-            await self.set_lobby()
-            return
+            return await self.set_lobby()
 
         # Start next round
         self.qualified = self.next_qualified
@@ -114,10 +112,19 @@ class BattleRoyaleLobby(LobbyManager):
                 # Check if we have a winner
                 if len(self.next_qualified) == 1:
                     await self.current_round.end(winner=self.next_qualified[0])
-                    self.round_task.cancel()
                     return await self.set_lobby()
                 await self.current_round.end()
                 self.round_task = Task(await self.start_round(round=self.current_round.round+1))
 
         else:
             await interaction.response.send_message("Incorrect", ephemeral=True, delete_after=5)
+
+    async def set_lobby(self) -> None:
+        self.qualified = []
+
+        # Make sure any task is cancelled
+        if self.round_task is not None:
+            self.round_task.cancel()
+            self.round_task = None
+
+        return await super().set_lobby()
