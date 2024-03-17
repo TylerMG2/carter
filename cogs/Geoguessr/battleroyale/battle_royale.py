@@ -114,7 +114,7 @@ class BattleRoyaleLobby(LobbyManager):
                 # Check if we have a winner
                 if len(self.next_qualified) == 1:
                     await self.current_round.end(winner=self.next_qualified[0])
-                    await self.round_task.cancel()
+                    self.round_task.cancel()
                     return await self.set_lobby()
                 await self.current_round.end()
                 self.round_task = Task(await self.start_round(round=self.current_round.round+1))
