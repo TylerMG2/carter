@@ -40,7 +40,8 @@ class BattleRoyaleRound:
 
         # All guesses
         for guess in self.all_guesses:
-            guess_str += f":flag_{guess}: "
+            if guess != self.pano.iso2:
+                guess_str += f":flag_{guess.lower()}: "
 
         # Each players guessed
         for player_id, guess_list in self.guesses.items():
