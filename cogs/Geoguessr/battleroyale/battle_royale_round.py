@@ -81,6 +81,7 @@ class BattleRoyaleRound:
         
         # Check if the player can guess
         self.guesses[player_id].append(guess)
+        self.all_guesses.add(guess)
         self.embed_message.set_field_at(0, name='Guesses', value=self._generate_guesses_str(), inline=False)
         await self.embed_message.update()
         if guess == self.pano.iso2:
