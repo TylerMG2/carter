@@ -57,6 +57,14 @@ class BattleRoyaleLobby(LobbyManager):
             await self.set_lobby()
             return
         await self.current_round.end()
+
+        # If there were no guesses. End the challenge
+        if len(self.current_round.all_guesses) == 0:
+            await self.set_lobby()
+            return
+
+        # Start next round
+        self.qualified = self.next_qualified
         self.round_task = Task(self.start_round(round=round+1))
     
     # Function to handle a guess
