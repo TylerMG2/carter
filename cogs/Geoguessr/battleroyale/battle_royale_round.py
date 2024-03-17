@@ -67,7 +67,7 @@ class BattleRoyaleRound:
         # Build challenge embed
         future_time = int(time.time() + self.round_time)
         self.embed_message.update_embed(description=ROUND_DESCRIPTION.format(self.round, future_time), color=0x0000ff)
-        self.embed_message.add_field(name='Guesses', value="No guesses yet", inline=False)
+        self.embed_message.add_field(name='Guesses', value=self._generate_guesses_str(), inline=False)
         self.embed_message.set_image(url=self.pano.get_image_url())
         await self.embed_message.update()
 
