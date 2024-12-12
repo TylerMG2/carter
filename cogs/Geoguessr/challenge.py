@@ -59,7 +59,7 @@ class Challenge:
         self.embed_message.set_author(name=f"{self.interaction.user.display_name}'s Challenge", icon_url=self.interaction.user.display_avatar.url)
         
         # Respond to the interaction
-        return await self.embed_message.respond(self.interaction)
+        return await self.embed_message.respond_to(self.interaction)
         
     # Make a guess
     async def add_guess(self, interaction: Interaction, guess: str) -> bool:
